@@ -1,0 +1,11 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mosaic5g
+subjects:
+- kind: ServiceAccount
+  name: mosaic5g
+roleRef:
+  kind: Role
+  name: mosaic5g
+  apiGroup: rbac.authorization.k8s.io

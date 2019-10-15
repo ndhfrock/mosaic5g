@@ -1,0 +1,24 @@
+apiVersion: mosaic5g.com/v1alpha1
+kind: Mosaic5g
+metadata:
+  name: example-mosaic5g
+spec:
+  # Add fields here
+  size: 1
+  cnImage: "mosaic5gecosys/oaicn:1.1"
+  ranImage: "mosaic5gecosys/oairan:1.1"
+  mcc: "208"                 
+  mnc: "93"                   
+  eutraBand: "7"             
+  downlinkFrequency: "2685000000L"    
+  uplinkFrequencyOffset: "-120000000"
+  configurationPathofCN: "/var/snap/oai-cn/current/"
+  configurationPathofRAN: "/var/snap/oai-ran/current/"
+  snapBinaryPath: "/snap/bin/"
+  hssDomainName: "oaicn"
+  mmeDomainName: "oaicn"
+  spgwDomainName: "oaicn"
+  mysqlDomainName: "mysql"
+  dns: "140.118.123.254"
+  flexRAN: false
+  flexRANDomainName: "flexran"

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosaic5g
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: mosaic5g
+  template:
+    metadata:
+      labels:
+        name: mosaic5g
+    spec:
+      serviceAccountName: mosaic5g
+      containers:
+        - name: mosaic5g
+          # Replace this with the built image name
+          image: REPLACE_IMAGE
+          command:
+          - mosaic5g
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "mosaic5g"

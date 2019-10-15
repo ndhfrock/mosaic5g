@@ -1,0 +1,99 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: mosaic5gs.mosaic5g.com
+spec:
+  group: mosaic5g.com
+  names:
+    kind: Mosaic5g
+    listKind: Mosaic5gList
+    plural: mosaic5gs
+    singular: mosaic5g
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          properties:
+            cnImage:
+              type: string
+            configurationPathofCN:
+              type: string
+            configurationPathofRAN:
+              type: string
+            dns:
+              type: string
+            downlinkFrequency:
+              type: string
+            eutraBand:
+              type: string
+            flexRAN:
+              type: boolean
+            flexRANDomainName:
+              type: string
+            hssDomainName:
+              type: string
+            mcc:
+              type: string
+            mmeDomainName:
+              type: string
+            mnc:
+              type: string
+            mysqlDomainName:
+              type: string
+            ranImage:
+              type: string
+            size:
+              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                Important: Run "operator-sdk generate k8s" to regenerate code after
+                modifying this file Add custom validation using kubebuilder tags:
+                https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+              format: int32
+              type: integer
+            snapBinaryPath:
+              type: string
+            spgwDomainName:
+              type: string
+            uplinkFrequencyOffset:
+              type: string
+          required:
+          - size
+          - cnImage
+          - ranImage
+          - mcc
+          - mnc
+          - eutraBand
+          - downlinkFrequency
+          - uplinkFrequencyOffset
+          - flexRAN
+          - configurationPathofCN
+          - configurationPathofRAN
+          - snapBinaryPath
+          - dns
+          - hssDomainName
+          - mmeDomainName
+          - spgwDomainName
+          - mysqlDomainName
+          - flexRANDomainName
+          type: object
+        status:
+          type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
