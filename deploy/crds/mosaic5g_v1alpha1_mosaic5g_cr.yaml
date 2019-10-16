@@ -1,7 +1,7 @@
 apiVersion: mosaic5g.com/v1alpha1
 kind: Mosaic5g
 metadata:
-  name: example-mosaic5g
+  name: mosaic5g
 spec:
   # Add fields here
   size: 1

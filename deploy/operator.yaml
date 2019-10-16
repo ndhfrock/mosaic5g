@@ -16,7 +16,7 @@ spec:
       containers:
         - name: mosaic5g
           # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: ndhfrock/m5goperator:v0.0.1
           command:
           - mosaic5g
           imagePullPolicy: Always
