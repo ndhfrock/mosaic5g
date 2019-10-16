@@ -187,7 +187,6 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	// Create an oaicn service
-	/**
 	service := &v1.Service{}
 	cnService := r.genCNService(instance)
 	// Check if the oai-cn service already exists, if not create a new one
@@ -199,7 +198,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			return reconcile.Result{}, err
 		}
 	}
-	*/
+
 	// Create an oairan deployment
 	ran := &appsv1.Deployment{}
 	ranDeployment := r.deploymentForRAN(instance)
