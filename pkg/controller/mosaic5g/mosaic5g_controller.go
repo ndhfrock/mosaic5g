@@ -179,7 +179,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			return reconcile.Result{}, err
 		}
 		// Deployment created successfully. Let's wait for it to be ready
-		d, _ := time.ParseDuration("10s")
+		d, _ := time.ParseDuration("300s")
 		return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 	} else if err != nil {
 		reqLogger.Error(err, "CN Failed to get Deployment")
