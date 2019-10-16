@@ -293,7 +293,7 @@ func (r *ReconcileMosaic5g) deploymentForCN(m *mosaic5gv1alpha1.Mosaic5g) *appsv
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			//Name:        m.GetName() + "-" + cnName,
-			Name:        cnName,
+			Name:        "oaicn",
 			Namespace:   m.Namespace,
 			Labels:      labels,
 			Annotations: Annotations,
