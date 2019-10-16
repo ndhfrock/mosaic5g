@@ -62,7 +62,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource Pods and requeue the owner Mosaic5g
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &mosaic5gv1alpha1.Mosaic5g{},
 	})
@@ -179,7 +179,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			return reconcile.Result{}, err
 		}
 		// Deployment created successfully. Let's wait for it to be ready
-		d, _ := time.ParseDuration("300s")
+		d, _ := time.ParseDuration("10s")
 		return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 	} else if err != nil {
 		reqLogger.Error(err, "CN Failed to get Deployment")
@@ -205,8 +205,8 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: ranDeployment.GetName(), Namespace: instance.Namespace}, ran)
 	if err != nil && errors.IsNotFound(err) {
 		if cn.Status.ReadyReplicas == 0 {
-			d, _ := time.ParseDuration("300s")
-			return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No oai-cn POD is ready, 300 seconds backoff")
+			d, _ := time.ParseDuration("10s")
+			return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No oai-cn POD is ready, 10 seconds backoff")
 		}
 		reqLogger.Info("Sheeps are ready")
 		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", ranDeployment.Namespace, "Deployment.Name", ranDeployment.Name)
