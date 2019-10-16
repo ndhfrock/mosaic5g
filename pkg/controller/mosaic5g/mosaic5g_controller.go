@@ -283,7 +283,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 
 // deploymentForCN returns a Core Network Deployment object
 func (r *ReconcileMosaic5g) deploymentForCN(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
-	cnName := m.Spec.MmeDomainName
+	//cnName := m.Spec.MmeDomainName
 	//ls := util.LabelsForMosaic5g(m.Name + cnName)
 	replicas := m.Spec.Size
 	labels := make(map[string]string)
