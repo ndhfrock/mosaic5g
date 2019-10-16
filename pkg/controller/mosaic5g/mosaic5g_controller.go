@@ -179,7 +179,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			return reconcile.Result{}, err
 		}
 		// Deployment created successfully. Let's wait for it to be ready
-		d, _ := time.ParseDuration("300s")
+		d, _ := time.ParseDuration("10s")
 		return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 	} else if err != nil {
 		reqLogger.Error(err, "CN Failed to get Deployment")
@@ -188,6 +188,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	// Create an oaicn service
 	service := &v1.Service{}
+	/**
 	cnService := r.genCNService(instance)
 	// Check if the oai-cn service already exists, if not create a new one
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: cnService.GetName(), Namespace: instance.Namespace}, service)
@@ -198,6 +199,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			return reconcile.Result{}, err
 		}
 	}
+	*/
 	// Create an oairan deployment
 	ran := &appsv1.Deployment{}
 	ranDeployment := r.deploymentForRAN(instance)
