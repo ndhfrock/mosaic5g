@@ -458,7 +458,7 @@ func (r *ReconcileMosaic5g) deploymentForMySQL(m *mosaic5gv1alpha1.Mosaic5g) *ap
 	labels["app"] = "oai"
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "mysql",
+			Name:      "mysql2",
 			Namespace: m.Namespace,
 			Labels:    labels,
 		},
