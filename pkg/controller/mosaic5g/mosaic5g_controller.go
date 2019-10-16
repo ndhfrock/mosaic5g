@@ -470,7 +470,7 @@ func (r *ReconcileMosaic5g) deploymentForMySQL(m *mosaic5gv1alpha1.Mosaic5g) *ap
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image: "mysql:5.6",
+						Image: "mysql:latest",
 						Name:  "mysql",
 						Env: []corev1.EnvVar{
 							{Name: "MYSQL_ROOT_PASSWORD", Value: "linux"},
