@@ -292,7 +292,8 @@ func (r *ReconcileMosaic5g) deploymentForCN(m *mosaic5gv1alpha1.Mosaic5g) *appsv
 	Annotations["container.apparmor.security.beta.kubernetes.io/oaicn"] = "unconfined"
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.GetName() + "-" + cnName,
+			//Name:        m.GetName() + "-" + cnName,
+			Name:        cnName,
 			Namespace:   m.Namespace,
 			Labels:      labels,
 			Annotations: Annotations,
