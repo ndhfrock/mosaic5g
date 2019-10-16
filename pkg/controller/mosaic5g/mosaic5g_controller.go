@@ -187,8 +187,8 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	// Create an oaicn service
-	service := &v1.Service{}
 	/**
+	service := &v1.Service{}
 	cnService := r.genCNService(instance)
 	// Check if the oai-cn service already exists, if not create a new one
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: cnService.GetName(), Namespace: instance.Namespace}, service)
