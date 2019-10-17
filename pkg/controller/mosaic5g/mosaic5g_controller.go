@@ -7,8 +7,8 @@ import (
 
 	Err "errors"
 
-	mosaic5gv1alpha1 "github.com/ndhfrock/mosaic5g/pkg/apis/mosaic5g/v1alpha1"
 	"github.com/ndhfrock/mosaic5g/internal/util"
+	mosaic5gv1alpha1 "github.com/ndhfrock/mosaic5g/pkg/apis/mosaic5g/v1alpha1"
 	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
