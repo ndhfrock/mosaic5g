@@ -117,6 +117,22 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	new := r.genConfigMap(instance)
 	config := &corev1.ConfigMap{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: new.GetName(), Namespace: instance.Namespace}, config)
+	// if gen configmap succesfull continue to saves it in Kubernetes cluster
+	if errors.IsNotFound(err) && err != nil {
+		//Create a configmap from mosaic5g spec for cn and ran
+		reqLogger.Info("Creating a new ConfigMap for CN and RAN")
+		conf := r.genConfigMap(instance)
+		reqLogger.Info("conf", "content", conf)
+		err = r.client.Create(context.TODO(), conf)
+		//If fail
+		if err != nil {
+			reqLogger.Error(err, "Failed to create a new ConfigMap")
+		}
+		//if genconfigmap not succesfull
+	} else if err != nil {
+		reqLogger.Error(err, "Generate CongifMap failed")
+		return reconcile.Result{}, err
+	}
 
 	//Everything works fine, Reconcile will end
 	return reconcile.Result{}, nil
