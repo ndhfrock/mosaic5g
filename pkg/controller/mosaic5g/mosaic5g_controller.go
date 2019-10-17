@@ -178,7 +178,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: cnDeployment.GetName(), Namespace: instance.Namespace}, cn)
 	if err != nil && errors.IsNotFound(err) {
 		if mysql.Status.ReadyReplicas == 0 {
-			return reconcile.Result{Requeue: true}, Err.New("No mysql POD is ready")
+			return reconcile.Result{Requeue: true}, Err.New("No mysql POD is ready, NO!!!")
 		}
 		reqLogger.Info("MME domain name " + instance.Spec.MmeDomainName)
 		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", cnDeployment.Namespace, "Deployment.Name", cnDeployment.Name)
