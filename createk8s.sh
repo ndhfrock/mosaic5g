@@ -67,7 +67,31 @@ stop(){
     echo "Kubernetes Stopped by stop()"
 }
 
+start_microk8s(){
+    echo "Start a fresh microk8s and deploy operator on it, tested with Ubuntu 18.04"
+    echo "sudo without password is recommended"
+    sudo snap install microk8s --classic --channel=1.14/stable
+    #sudo snap install kubectl --classic
+    microk8s.start
+    microk8s.enable dns
+    # kubeconfig is used by operator
+    sudo chown ${MYNAME} -R $HOME/.kube
+    microk8s.kubectl config view --raw > $HOME/.kube/config
+    # enable privileged
+    sudo bash -c 'echo "--allow-privileged=true" >> /var/snap/microk8s/current/args/kubelet'
+    sudo bash -c 'echo "--allow-privileged=true" >> /var/snap/microk8s/current/args/kube-apiserver'
+    # Restart kube
+    sudo systemctl restart snap.microk8s.daemon-kubelet.service
+    sudo systemctl restart snap.microk8s.daemon-apiserver.service
+    # Configure DNS if it's not working 
+    # microk8s.kubectl -n kube-system edit configmap/coredns
 
+}
+
+stop_microk8s(){
+    sudo snap remove microk8s 
+    #sudo snap remove kubectl 
+}
 
 main() {
     if [ `id -u` = "0" ]; then
@@ -91,6 +115,12 @@ main() {
         remove_req)
             remove_req
         ;;
+        start_microk8s)
+            start_microk8s
+        ;;
+        stop_microk8s)
+            stop_microk8s
+        ;;
         *)
             echo "Requirement:"
             echo "  1. Set up sudo without password and run this script as normal user"
@@ -105,6 +135,8 @@ main() {
             echo "  createk8s.sh start [calico|flannel] ---- Create a k8s master with CNI installed"
             echo "  createk8s.sh stop ---- break down k8s master"
             echo "  createk8s.sh start simple ---- For minimal setup (no cni plugin)"
+            echo "  createk8s.sh start_microk8s ---- start kubernetes using microk8s"
+            echo "  createk8s.sh stop_microk8s ---- stop microk8s"
             echo "Note: You still need to add other worker nodes manually. "
         
     esac
