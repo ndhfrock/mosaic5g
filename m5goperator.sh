@@ -13,10 +13,10 @@ run_local(){
 run_container(){
     case ${1} in
         start)
-            kubectl apply -f deploy/service_account.yaml
-            kubectl apply -f deploy/role.yaml
-            kubectl apply -f deploy/role_binding.yaml
-            kubectl apply -f deploy/operator.yaml
+            kubectl create -f deploy/service_account.yaml
+            kubectl create -f deploy/role.yaml
+            kubectl create -f deploy/role_binding.yaml
+            kubectl create -f deploy/operator.yaml
         ;;
         stop)
             kubectl delete -f deploy/service_account.yaml
@@ -50,7 +50,7 @@ deploy_operator_from_clean_machine(){
 
 init(){
     echo "Applying crd..."
-    kubectl apply -f deploy/crds/mosaic5g_v1alpha1_mosaic5g_crd.yaml
+    kubectl create -f deploy/crds/mosaic5g_v1alpha1_mosaic5g_crd.yaml
     sleep 3
     echo "Done, now run [local] or [container start] to create your operator"
 }
