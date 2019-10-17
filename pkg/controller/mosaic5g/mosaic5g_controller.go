@@ -1,10 +1,10 @@
 package mosaic5g
 
 import (
+	"context"
+
 	mosaic5gv1alpha1 "github.com/ndhfrock/mosaic5g/pkg/apis/mosaic5g/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-
-	//v1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -80,3 +80,16 @@ type ReconcileMosaic5g struct {
 // How to reconcile Mosaic5g:
 // 1. Create MySQL, OAI-CN and OAI-RAN in order
 // 2. If the configuration changed, restart all OAI PODs
+func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+	reqLogger.Info("Reconciling Mosaic5g")
+
+	// Fetch Mosaic5g instance
+	instance := &mosaic5gv1alpha1.Mosaic5g{}
+	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
+	if err != nil {
+		if error.IsNotFound(err) {
+
+		}
+	}
+}
