@@ -8,15 +8,21 @@ import (
 	Err "errors"
 
 	mosaic5gv1alpha1 "github.com/ndhfrock/mosaic5g/pkg/apis/mosaic5g/v1alpha1"
+	"github.com/ndhfrock/mosaic5g/internal/util"
 	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 
+	//v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -190,7 +196,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	// Create an oaicn service
-	service := &v1.Service{}
+	service := &corev1.Service{}
 	cnService := r.genCNService(instance)
 	// Check if the oai-cn service already exists, if not create a new one
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: cnService.GetName(), Namespace: instance.Namespace}, service)
@@ -513,13 +519,13 @@ func (r *ReconcileMosaic5g) deploymentForMySQL(m *mosaic5gv1alpha1.Mosaic5g) *ap
 }
 
 // genCNService will generate a service for oaicn
-func (r *ReconcileMosaic5g) genCNService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
-	var service *v1.Service
+func (r *ReconcileMosaic5g) genCNService(m *mosaic5gv1alpha1.Mosaic5g) *corev1.Service {
+	var service *corev1.Service
 	selectMap := make(map[string]string)
 	selectMap["app"] = "oaicn"
-	service = &v1.Service{}
-	service.Spec = v1.ServiceSpec{
-		Ports: []v1.ServicePort{
+	service = &corev1.Service{}
+	service.Spec = corev1.ServiceSpec{
+		Ports: []corev1.ServicePort{
 			{Name: "enb", Port: 2152},
 			{Name: "hss-1", Port: 3868},
 			{Name: "hss-2", Port: 5868},
@@ -538,13 +544,13 @@ func (r *ReconcileMosaic5g) genCNService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Servi
 }
 
 // genMySQLService will generate a service for oaicn
-func (r *ReconcileMosaic5g) genMySQLService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
-	var service *v1.Service
+func (r *ReconcileMosaic5g) genMySQLService(m *mosaic5gv1alpha1.Mosaic5g) *corev1.Service {
+	var service *corev1.Service
 	selectMap := make(map[string]string)
 	selectMap["app"] = "oai"
-	service = &v1.Service{}
-	service.Spec = v1.ServiceSpec{
-		Ports: []v1.ServicePort{
+	service = &corev1.Service{}
+	service.Spec = corev1.ServiceSpec{
+		Ports: []corev1.ServicePort{
 			{Name: "mysql-port", Port: 3306},
 		},
 		Selector:  selectMap,
