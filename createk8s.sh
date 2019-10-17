@@ -3,7 +3,8 @@
 KUBE_VERSION="1.15.1-00"
 
 install_req(){
-    sudo apt install -qy kubeadm=${KUBE_VERSION} kubelet=${KUBE_VERSION} kubectl=${KUBE_VERSION}
+    #sudo apt install -qy kubeadm=${KUBE_VERSION} kubelet=${KUBE_VERSION} kubectl=${KUBE_VERSION}
+    sudo apt install -qy kubeadm kubelet kubectl
     sudo apt-mark hold kubeadm kubelet kubectl
     sudo swapoff -a
 }

@@ -64,6 +64,14 @@ break_down(){
     sudo snap remove kubectl 
 }
 
+watch_dep(){
+    sudo watch -n1 kubectl get deployment 
+}
+
+watch_pods(){
+    sudo watch -n1 kubectl get pods 
+}
+
 main() {
     case ${1} in
         init)
@@ -84,6 +92,12 @@ main() {
         break_down)
             break_down
         ;;
+	watch_deployment)
+	    watch_dep
+	;;	
+	watch_pods)
+	    watch_pods
+	;;
         *)
             echo "Bring up M5G-Operator for you"
             echo "[IMPORTANT] Please set up kubeconfig at the beginning of this script"
@@ -94,7 +108,9 @@ main() {
             echo "      m5goperator.sh local - Run Operator as a Golang app at local"
             echo "      m5goperator.sh container [start|stop] - Run Operator as a POD inside Kubernetes"
             echo "      m5goperator.sh from_clean_machine - Install and run microk8s kubectl, then deploy operator on it (Tested with Ubuntu 18.04)"
-            echo ""
+	    echo "      m5goperator.sh watch_deployment - watch all running deployment, refreshed every 1 second"
+	    echo "      m5goperator.sh watch_pods - watch all running pods, refreshed every 1 second"
+	    echo ""
             echo "Default operator image is tig4605246/m5g_operator:0.1"
         ;;
     esac
