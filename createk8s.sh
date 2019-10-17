@@ -1,6 +1,10 @@
 #!/bin/bash
 
 KUBE_VERSION="1.15.1-00"
+export KUBECONFIG=/home/nadhif/.kube/config
+export OPERATOR_NAME=m5g-operator
+export MYNAME=${USER}
+export MYDNS="140.118.31.99"
 
 install_req(){
     #sudo apt install -qy kubeadm=${KUBE_VERSION} kubelet=${KUBE_VERSION} kubectl=${KUBE_VERSION}
