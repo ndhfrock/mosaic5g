@@ -61,7 +61,7 @@ clean(){
 
 break_down(){
     sudo snap remove microk8s 
-    sudo snap remove kubectl 
+    #sudo snap remove kubectl 
 }
 
 watch_dep(){
