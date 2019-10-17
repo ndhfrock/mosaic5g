@@ -72,6 +72,12 @@ watch_pods(){
     sudo watch -n1 kubectl get pods 
 }
 
+push_image() {
+    operator-sdk build ndhfrock/m5goperator:v0.0.1
+    sed -i 's|REPLACE_IMAGE|ndhfrock/m5goperator:v0.0.1|g' deploy/operator.yaml
+    docker push ndhfrock/m5goperator:v0.0.1
+}
+
 main() {
     case ${1} in
         init)
@@ -92,26 +98,30 @@ main() {
         break_down)
             break_down
         ;;
-	watch_deployment)
-	    watch_dep
-	;;	
-	watch_pods)
-	    watch_pods
-	;;
+        watch_deployment)
+            watch_dep
+        ;;	
+        watch_pods)
+            watch_pods
+        ;;
+        push_image)
+            push_image
+        ;;
         *)
             echo "Bring up M5G-Operator for you"
             echo "[IMPORTANT] Please set up kubeconfig at the beginning of this script"
             echo ""
             echo "Usage:"
-            echo "      m5goperator.sh init - Apply CRD to k8s cluster (Required for Operator)"
+            echo "      m5goperator.sh init - Apply CRD to kubernetes cluster (Required for Operator)"
             echo "      m5goperator.sh clean - Remove CRD from cluster"
             echo "      m5goperator.sh local - Run Operator as a Golang app at local"
             echo "      m5goperator.sh container [start|stop] - Run Operator as a POD inside Kubernetes"
             echo "      m5goperator.sh from_clean_machine - Install and run microk8s kubectl, then deploy operator on it (Tested with Ubuntu 18.04)"
-	    echo "      m5goperator.sh watch_deployment - watch all running deployment, refreshed every 1 second"
-	    echo "      m5goperator.sh watch_pods - watch all running pods, refreshed every 1 second"
-	    echo ""
-            echo "Default operator image is tig4605246/m5g_operator:0.1"
+            echo "      m5goperator.sh watch_deployment - watch all running deployment, refreshed every 1 second"
+            echo "      m5goperator.sh watch_pods - watch all running pods, refreshed every 1 second"
+            echo "      m5goperator.sh push_image - push your operator image to dockerhub"
+            echo ""
+            echo "Default operator image is ndhfrock/m5goperator"
         ;;
     esac
 
