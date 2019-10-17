@@ -301,7 +301,7 @@ func (r *ReconcileMosaic5g) genConfigMap(m *mosaic5gv1alpha1.Mosaic5g) *corev1.C
 	cm := corev1.ConfigMap{
 		Data: datas,
 	}
-	cm.Name = "config"
+	cm.Name = "mosaic5g-config"
 	cm.Namespace = m.Namespace
 	genLogger.Info("Done Creating Config Map")
 	return &cm
