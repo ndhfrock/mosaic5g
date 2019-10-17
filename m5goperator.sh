@@ -31,7 +31,7 @@ deploy_operator_from_clean_machine(){
     echo "Start a fresh microk8s and deploy operator on it, tested with Ubuntu 18.04"
     echo "sudo without password is recommended"
     sudo snap install microk8s --classic --channel=1.14/stable
-    sudo snap install kubectl --classic
+    #sudo snap install kubectl --classic
     microk8s.start
     microk8s.enable dns
     # kubeconfig is used by operator
