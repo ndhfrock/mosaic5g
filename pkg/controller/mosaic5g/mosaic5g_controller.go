@@ -12,6 +12,7 @@ import (
 	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 
 	//v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -62,7 +63,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// TODO(user): Modify this to be the types you create that are o: 11:30wned by the primary resource
+	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource Pods and requeue the owner Mosaic5g
 	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
@@ -98,7 +99,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Mosaic5g")
 
-	// Fetch Mosaic5g instance
+	// Fetch the Mosaic5g instance
 	instance := &mosaic5gv1alpha1.Mosaic5g{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	// If there is already Mosaic5g instances, delete it
@@ -114,34 +115,30 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			conf.Namespace = "default"
 			err = r.client.Delete(context.TODO(), conf)
 			if err != nil {
-				reqLogger.Error(err, "Failed to delete Config Map")
+				reqLogger.Error(err, "Failed to delete ")
 			}
 			reqLogger.Info("Mosaic5g resource not found. Ignoring since object must be deleted")
 			return reconcile.Result{}, nil
 		}
-		//Error reading the object - requeue the request.
-		reqLogger.Error(err, "Failed to get Mosaic5G instance")
+		// Error reading the object - requeue the request.
+		reqLogger.Error(err, "Failed to get Mosaic5g instance")
 		return reconcile.Result{}, err
 	}
 
-	//if there is none, create it
 	new := r.genConfigMap(instance)
-	config := &corev1.ConfigMap{}
+	config := &v1.ConfigMap{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: new.GetName(), Namespace: instance.Namespace}, config)
-	// if gen configmap succesfull continue to saves it in Kubernetes cluster
-	if errors.IsNotFound(err) && err != nil {
-		//Create a configmap from mosaic5g spec for cn and ran
-		reqLogger.Info("Creating a new ConfigMap for CN and RAN")
+	if err != nil && errors.IsNotFound(err) {
+		// Create a configmap for cn and ran
+		reqLogger.Info("Creating a new ConfigMap")
 		conf := r.genConfigMap(instance)
 		reqLogger.Info("conf", "content", conf)
 		err = r.client.Create(context.TODO(), conf)
-		//If fail
 		if err != nil {
-			reqLogger.Error(err, "Failed to create a new ConfigMap")
+			reqLogger.Error(err, "Failed to create new ConfigMap")
 		}
-		//if genconfigmap not succesfull
 	} else if err != nil {
-		reqLogger.Error(err, "Generate CongifMap failed")
+		reqLogger.Error(err, "Generating ConfigMap failed")
 		return reconcile.Result{}, err
 	}
 
@@ -191,12 +188,12 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		d, _ := time.ParseDuration("30s")
 		return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 	} else if err != nil {
-		reqLogger.Error(err, "CN Failed to get Deployment")
+		reqLogger.Error(err, "Failed to get a CN Deployment")
 		return reconcile.Result{}, err
 	}
 
-	// Create an oaicn service
-	service := &corev1.Service{}
+	// Create an oaicn service, so that OAICN could connect with other pods
+	service := &v1.Service{}
 	cnService := r.genCNService(instance)
 	// Check if the oai-cn service already exists, if not create a new one
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: cnService.GetName(), Namespace: instance.Namespace}, service)
@@ -217,7 +214,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			d, _ := time.ParseDuration("10s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No oai-cn POD is ready, 10 seconds backoff")
 		}
-		reqLogger.Info("Sheeps are ready")
+		reqLogger.Info("CN are ready")
 		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", ranDeployment.Namespace, "Deployment.Name", ranDeployment.Name)
 		err = r.client.Create(context.TODO(), ranDeployment)
 		if err != nil {
@@ -241,6 +238,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			return reconcile.Result{}, err
 		}
 		// Spec updated - return and requeue
+		reqLogger.Info("All deployment size are the same as the spec")
 		return reconcile.Result{Requeue: true}, nil
 	}
 
@@ -284,27 +282,8 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	}
 
-	//Everything works fine, Reconcile will end
+	// Everything is fine, Reconcile ends
 	return reconcile.Result{}, nil
-}
-
-//generate configmap from Reconcile Mosaic5g's spec
-func (r *ReconcileMosaic5g) genConfigMap(m *mosaic5gv1alpha1.Mosaic5g) *corev1.ConfigMap {
-	genLogger := log.WithValues("Mosaic5g", "genConfigMap")
-	//Make specs into map[name][name]
-	datas := make(map[string]string)
-	d, err := yaml.Marshal(&m.Spec)
-	if err != nil {
-		log.Error(err, "Marshal fail")
-	}
-	datas["conf.yaml"] = string(d)
-	cm := corev1.ConfigMap{
-		Data: datas,
-	}
-	cm.Name = "mosaic5g-config"
-	cm.Namespace = m.Namespace
-	genLogger.Info("Done Creating Config Map")
-	return &cm
 }
 
 // deploymentForCN returns a Core Network Deployment object
@@ -518,14 +497,33 @@ func (r *ReconcileMosaic5g) deploymentForMySQL(m *mosaic5gv1alpha1.Mosaic5g) *ap
 	return dep
 }
 
+// genConfigMap will generate a configmap from ReconcileMosaic5g's spec
+func (r *ReconcileMosaic5g) genConfigMap(m *mosaic5gv1alpha1.Mosaic5g) *v1.ConfigMap {
+	genLogger := log.WithValues("Mosaic5g", "genConfigMap")
+	// Make specs into map[name][value]
+	datas := make(map[string]string)
+	d, err := yaml.Marshal(&m.Spec)
+	if err != nil {
+		log.Error(err, "Marshal fail")
+	}
+	datas["conf.yaml"] = string(d)
+	cm := v1.ConfigMap{
+		Data: datas,
+	}
+	cm.Name = "mosaic5g-config"
+	cm.Namespace = m.Namespace
+	genLogger.Info("Done")
+	return &cm
+}
+
 // genCNService will generate a service for oaicn
-func (r *ReconcileMosaic5g) genCNService(m *mosaic5gv1alpha1.Mosaic5g) *corev1.Service {
-	var service *corev1.Service
+func (r *ReconcileMosaic5g) genCNService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
+	var service *v1.Service
 	selectMap := make(map[string]string)
 	selectMap["app"] = "oaicn"
-	service = &corev1.Service{}
-	service.Spec = corev1.ServiceSpec{
-		Ports: []corev1.ServicePort{
+	service = &v1.Service{}
+	service.Spec = v1.ServiceSpec{
+		Ports: []v1.ServicePort{
 			{Name: "enb", Port: 2152},
 			{Name: "hss-1", Port: 3868},
 			{Name: "hss-2", Port: 5868},
@@ -544,13 +542,13 @@ func (r *ReconcileMosaic5g) genCNService(m *mosaic5gv1alpha1.Mosaic5g) *corev1.S
 }
 
 // genMySQLService will generate a service for oaicn
-func (r *ReconcileMosaic5g) genMySQLService(m *mosaic5gv1alpha1.Mosaic5g) *corev1.Service {
-	var service *corev1.Service
+func (r *ReconcileMosaic5g) genMySQLService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
+	var service *v1.Service
 	selectMap := make(map[string]string)
 	selectMap["app"] = "oai"
-	service = &corev1.Service{}
-	service.Spec = corev1.ServiceSpec{
-		Ports: []corev1.ServicePort{
+	service = &v1.Service{}
+	service.Spec = v1.ServiceSpec{
+		Ports: []v1.ServicePort{
 			{Name: "mysql-port", Port: 3306},
 		},
 		Selector:  selectMap,

@@ -10,7 +10,7 @@ apply_cr(){
       -H "Authorization: Bearer ${TOKEN}"\
       --insecure \
       -X POST ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs \
-      -d '{"apiVersion":"mosaic5g.com/v1alpha1","kind":"Mosaic5g","metadata":{"name":"mosaic5g"},"spec":{"size":1,"cnImage":"mosaic5gecosys/oaicn:1.2","ranImage":"mosaic5gecosys/oairan:1.2","mcc":"208","mnc":"93","eutraBand":"7","downlinkFrequency":"2685000000L","uplinkFrequencyOffset":"-120000000","configurationPathofCN":"/var/snap/oai-cn/current/","configurationPathofRAN":"/var/snap/oai-ran/current/","snapBinaryPath":"/snap/bin/","hssDomainName":"oaicn","mmeDomainName":"oaicn","spgwDomainName":"oaicn","mysqlDomainName":"mysql","dns":"140.118.31.99","flexRAN":false,"flexRANDomainName":"flexran"}}'
+      -d '{"apiVersion":"mosaic5g.com/v1alpha1","kind":"Mosaic5g","metadata":{"name":"mosaic5g"},"spec":{"size":1,"cnImage":"mosaic5gecosys/oaicn:1.1","ranImage":"mosaic5gecosys/oairan:1.1","mcc":"208","mnc":"93","eutraBand":"7","downlinkFrequency":"2685000000L","uplinkFrequencyOffset":"-120000000","configurationPathofCN":"/var/snap/oai-cn/current/","configurationPathofRAN":"/var/snap/oai-ran/current/","snapBinaryPath":"/snap/bin/","hssDomainName":"oaicn","mmeDomainName":"oaicn","spgwDomainName":"oaicn","mysqlDomainName":"mysql","dns":"140.118.31.99","flexRAN":false,"flexRANDomainName":"flexran"}}'
 
 }
 
@@ -64,6 +64,15 @@ main(){
       ;;
       *)
          echo "Commands: init apply_cr delete_cr patch_11 patch_12"
+         echo "Bring up Mosaic 5G Custom Resource"
+         echo "[Important] Always use api.sh init first to use this"
+         echo ""
+         echo "Usage:"
+         echo "      api.sh init - Apply defaultRole to kubernetes cluster"
+         echo "      api.sh apply_cr - Add all custom resource deployment"
+         echo "      api.sh delete_cr - Delete all Custom Resource Deployment"
+         echo "      api.sh patch_11 - Change to OAICN and OAIRAN Docker image tag 1.1"
+         echo "      api.sh patch_12 - Change to OAICN and OAI RAN Docker image tag 1.2"
       ;;
    esac
    
