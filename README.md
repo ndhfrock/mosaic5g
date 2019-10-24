@@ -1,9 +1,8 @@
 # M5GOperator
-mosaic5goperator
 
 A Kubernetes Operator for automatic Mosaic5G deployment on top of a Kubernetes Cluster
 
-Project layout
+## Project layout
 
 
 | File/Folders   | Purpose                           |
@@ -16,3 +15,8 @@ Project layout
 | go.mod go.sum | The [Go mod][go_mod] manifests that describe the external dependencies of this operator. |
 | vendor | The golang [vendor][Vendor] directory that contains local copies of external dependencies that satisfy Go imports in this project. [Go modules][go_mod] manages the vendor directory directly. This directory will not exist unless the project is initialized with the `--vendor` flag, or `go mod vendor` is run in the project root. |
 
+## Shell file
+
+- createk8s.sh : shell file to create a kubernetes cluster
+- m5goperator.sh : shell file to run this operator on kubernetes
+- api.sh : shell file to apply the custom resource, to deploy oai on kubernetes (deploy, update, delete)
