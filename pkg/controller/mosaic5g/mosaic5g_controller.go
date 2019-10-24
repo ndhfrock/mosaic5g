@@ -211,7 +211,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: ranDeployment.GetName(), Namespace: instance.Namespace}, ran)
 	if err != nil && errors.IsNotFound(err) {
 		if cn.Status.ReadyReplicas == 0 {
-			d, _ := time.ParseDuration("10s")
+			d, _ := time.ParseDuration("90s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No oai-cn POD is ready, 10 seconds backoff")
 		}
 		reqLogger.Info("CN are ready")
@@ -284,86 +284,6 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	// Everything is fine, Reconcile ends
 	return reconcile.Result{}, nil
-}
-
-// deploymentForCN returns a Core Network Deployment object
-func (r *ReconcileMosaic5g) deploymentForCN(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
-	cnName := m.Spec.MmeDomainName
-	//ls := util.LabelsForMosaic5g(m.Name + cnName)
-	replicas := m.Spec.Size
-	labels := make(map[string]string)
-	labels["app"] = "oaicn"
-	Annotations := make(map[string]string)
-	Annotations["container.apparmor.security.beta.kubernetes.io/oaicn"] = "unconfined"
-	dep := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.GetName() + "-" + cnName,
-			Namespace:   m.Namespace,
-			Labels:      labels,
-			Annotations: Annotations,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas: &replicas,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: labels,
-			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: labels,
-				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{{
-						Image:           m.Spec.CNImage,
-						Name:            "oaicn",
-						Command:         []string{"/sbin/init"},
-						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
-						VolumeMounts: []corev1.VolumeMount{{
-							Name:      "cgroup",
-							ReadOnly:  true,
-							MountPath: "/sys/fs/cgroup/",
-						}, {
-							Name:      "module",
-							ReadOnly:  true,
-							MountPath: "/lib/modules/",
-						}, {
-							Name:      "mosaic5g-config",
-							MountPath: "/root/config",
-						}},
-						Ports: []corev1.ContainerPort{{
-							ContainerPort: 80,
-							Name:          "mosaic5g-cn",
-						}},
-					}},
-					Affinity: util.GenAffinity("cn"),
-					Volumes: []corev1.Volume{{
-						Name: "cgroup",
-						VolumeSource: corev1.VolumeSource{
-							HostPath: &corev1.HostPathVolumeSource{
-								Path: "/sys/fs/cgroup/",
-								Type: util.NewHostPathType("Directory"),
-							},
-						}}, {
-						Name: "module",
-						VolumeSource: corev1.VolumeSource{
-							HostPath: &corev1.HostPathVolumeSource{
-								Path: "/lib/modules/",
-								Type: util.NewHostPathType("Directory"),
-							},
-						}}, {
-						Name: "mosaic5g-config",
-						VolumeSource: corev1.VolumeSource{
-							ConfigMap: &corev1.ConfigMapVolumeSource{
-								LocalObjectReference: corev1.LocalObjectReference{Name: "mosaic5g-config"},
-							},
-						}},
-					},
-				},
-			},
-		},
-	}
-	// Set Mosaic5g instance as the owner and controller
-	controllerutil.SetControllerReference(m, dep, r.scheme)
-	return dep
 }
 
 // deploymentForRAN returns a Core Network Deployment object
@@ -453,50 +373,6 @@ func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *apps
 	return dep
 }
 
-// deploymentForMySQL returns a Core Network Deployment object
-func (r *ReconcileMosaic5g) deploymentForMySQL(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
-	//ls := util.LabelsForMosaic5g(m.Name + cnName)
-	var replicas int32
-	replicas = 1
-	labels := make(map[string]string)
-	labels["app"] = "oai"
-	dep := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "mysql",
-			Namespace: m.Namespace,
-			Labels:    labels,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas: &replicas,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: labels,
-			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: labels,
-				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{{
-						Image: "mysql:5.6",
-						Name:  "mysql",
-						Env: []corev1.EnvVar{
-							{Name: "MYSQL_ROOT_PASSWORD", Value: "linux"},
-						},
-						Ports: []corev1.ContainerPort{{
-							ContainerPort: 3306,
-							Name:          "mysql",
-						}},
-					}},
-					Affinity: util.GenAffinity("cn"),
-				},
-			},
-		},
-	}
-	// Set Mosaic5g instance as the owner and controller
-	controllerutil.SetControllerReference(m, dep, r.scheme)
-	return dep
-}
-
 // genConfigMap will generate a configmap from ReconcileMosaic5g's spec
 func (r *ReconcileMosaic5g) genConfigMap(m *mosaic5gv1alpha1.Mosaic5g) *v1.ConfigMap {
 	genLogger := log.WithValues("Mosaic5g", "genConfigMap")
@@ -514,6 +390,86 @@ func (r *ReconcileMosaic5g) genConfigMap(m *mosaic5gv1alpha1.Mosaic5g) *v1.Confi
 	cm.Namespace = m.Namespace
 	genLogger.Info("Done")
 	return &cm
+}
+
+// deploymentForCN returns a Core Network Deployment object
+func (r *ReconcileMosaic5g) deploymentForCN(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+	cnName := m.Spec.MmeDomainName
+	//ls := util.LabelsForMosaic5g(m.Name + cnName)
+	replicas := m.Spec.Size
+	labels := make(map[string]string)
+	labels["app"] = "oaicn"
+	Annotations := make(map[string]string)
+	Annotations["container.apparmor.security.beta.kubernetes.io/oaicn"] = "unconfined"
+	dep := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        m.GetName() + "-" + cnName,
+			Namespace:   m.Namespace,
+			Labels:      labels,
+			Annotations: Annotations,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: labels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{
+						Image:           m.Spec.CNImage,
+						Name:            "oaicn",
+						Command:         []string{"/sbin/init"},
+						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
+						VolumeMounts: []corev1.VolumeMount{{
+							Name:      "cgroup",
+							ReadOnly:  true,
+							MountPath: "/sys/fs/cgroup/",
+						}, {
+							Name:      "module",
+							ReadOnly:  true,
+							MountPath: "/lib/modules/",
+						}, {
+							Name:      "mosaic5g-config",
+							MountPath: "/root/config",
+						}},
+						Ports: []corev1.ContainerPort{{
+							ContainerPort: 80,
+							Name:          "mosaic5g-cn",
+						}},
+					}},
+					Affinity: util.GenAffinity("cn"),
+					Volumes: []corev1.Volume{{
+						Name: "cgroup",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/sys/fs/cgroup/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}}, {
+						Name: "module",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/lib/modules/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}}, {
+						Name: "mosaic5g-config",
+						VolumeSource: corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "mosaic5g-config"},
+							},
+						}},
+					},
+				},
+			},
+		},
+	}
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, dep, r.scheme)
+	return dep
 }
 
 // genCNService will generate a service for oaicn
@@ -536,12 +492,57 @@ func (r *ReconcileMosaic5g) genCNService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Servi
 	}
 	service.Name = "oaicn"
 	service.Namespace = m.Namespace
+	service.Labels = selectMap
 	// Set Mosaic5g instance as the owner and controller
 	controllerutil.SetControllerReference(m, service, r.scheme)
 	return service
 }
 
-// genMySQLService will generate a service for oaicn
+// deploymentForMySQL returns a Core Network Deployment object
+func (r *ReconcileMosaic5g) deploymentForMySQL(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+	//ls := util.LabelsForMosaic5g(m.Name + cnName)
+	var replicas int32
+	replicas = 1
+	selectMap := make(map[string]string)
+	selectMap["app"] = "oai"
+	dep := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "mysql",
+			Namespace: m.Namespace,
+			Labels:    selectMap,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: selectMap,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: selectMap,
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{
+						Image: "mysql:latest",
+						Name:  "mysql",
+						Env: []corev1.EnvVar{
+							{Name: "MYSQL_ROOT_PASSWORD", Value: "linux"},
+						},
+						Ports: []corev1.ContainerPort{{
+							ContainerPort: 3306,
+							Name:          "mysql",
+						}},
+					}},
+					Affinity: util.GenAffinity("cn"),
+				},
+			},
+		},
+	}
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, dep, r.scheme)
+	return dep
+}
+
+// genMySQLService will generate a service so that oaicn could connect to mysql
 func (r *ReconcileMosaic5g) genMySQLService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
 	var service *v1.Service
 	selectMap := make(map[string]string)
@@ -549,13 +550,14 @@ func (r *ReconcileMosaic5g) genMySQLService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Se
 	service = &v1.Service{}
 	service.Spec = v1.ServiceSpec{
 		Ports: []v1.ServicePort{
-			{Name: "mysql-port", Port: 3306},
+			{Name: "mysql", Port: 3306},
 		},
 		Selector:  selectMap,
 		ClusterIP: "None",
 	}
 	service.Name = "mysql"
 	service.Namespace = m.Namespace
+	service.Labels = selectMap
 	// Set Mosaic5g instance as the owner and controller
 	controllerutil.SetControllerReference(m, service, r.scheme)
 	return service
