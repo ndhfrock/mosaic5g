@@ -8,6 +8,8 @@ export MYDNS="140.118.31.99"
 
 install_req(){
     #sudo apt install -qy kubeadm=${KUBE_VERSION} kubelet=${KUBE_VERSION} kubectl=${KUBE_VERSION}
+    sudo apt-get update && sudo apt-get install -y apt-transport-https curl
+    sudo curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
     sudo apt install -qy kubeadm kubelet kubectl
     sudo apt-mark hold kubeadm kubelet kubectl
     sudo swapoff -a
