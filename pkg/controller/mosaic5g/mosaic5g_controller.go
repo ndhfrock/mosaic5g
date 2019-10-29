@@ -225,7 +225,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
-	// Create an oaicn service, so that OAICN could connect with other pods
+	// Create an flexran service, so that flexran could connect with other pods
 	fservice := &v1.Service{}
 	flexranService := r.genFlexRANService(instance)
 	// Check if the oai-cn service already exists, if not create a new one
@@ -237,6 +237,11 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			return reconcile.Result{}, err
 		}
 	}
+
+	///wait 1 minutes for oaicn and flexran finish deploying
+	//sometimes oai-cn takes time to connect to mysql
+	reqLogger.Info("Waiting 1 minutes for OAICN and FlexRAN finish setting up before deploying OAI-RAN")
+	time.Sleep(60 * time.Second)
 
 	// Create an oairan deployment
 	ran := &appsv1.Deployment{}
@@ -646,7 +651,7 @@ func (r *ReconcileMosaic5g) deploymentForFlexRAN(m *mosaic5gv1alpha1.Mosaic5g) *
 						}},
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 80,
-							Name:          "mosaic5g-flexran",
+							Name:          "mosaic5g-fran",
 						}},
 					}},
 					Affinity: util.GenAffinity("flexran"),
