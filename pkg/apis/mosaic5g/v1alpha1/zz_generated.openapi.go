@@ -85,6 +85,12 @@ func schema_pkg_apis_mosaic5g_v1alpha1_Mosaic5gSpec(ref common.ReferenceCallback
 							Format: "",
 						},
 					},
+					"flexRANImage": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"mcc": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -176,7 +182,7 @@ func schema_pkg_apis_mosaic5g_v1alpha1_Mosaic5gSpec(ref common.ReferenceCallback
 						},
 					},
 				},
-				Required: []string{"size", "cnImage", "ranImage", "mcc", "mnc", "eutraBand", "downlinkFrequency", "uplinkFrequencyOffset", "flexRAN", "configurationPathofCN", "configurationPathofRAN", "snapBinaryPath", "dns", "hssDomainName", "mmeDomainName", "spgwDomainName", "mysqlDomainName", "flexRANDomainName"},
+				Required: []string{"size", "cnImage", "ranImage", "flexRANImage", "mcc", "mnc", "eutraBand", "downlinkFrequency", "uplinkFrequencyOffset", "flexRAN", "configurationPathofCN", "configurationPathofRAN", "snapBinaryPath", "dns", "hssDomainName", "mmeDomainName", "spgwDomainName", "mysqlDomainName", "flexRANDomainName"},
 			},
 		},
 		Dependencies: []string{},
@@ -188,7 +194,23 @@ func schema_pkg_apis_mosaic5g_v1alpha1_Mosaic5gStatus(ref common.ReferenceCallba
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "Mosaic5gStatus defines the observed state of Mosaic5g",
-				Properties:  map[string]spec.Schema{},
+				Properties: map[string]spec.Schema{
+					"nodes": {
+						SchemaProps: spec.SchemaProps{
+							Description: "INSERT ADDITIONAL STATUS FIELD - define observed state of cluster Important: Run \"operator-sdk generate k8s\" to regenerate code after modifying this file Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"nodes"},
 			},
 		},
 		Dependencies: []string{},

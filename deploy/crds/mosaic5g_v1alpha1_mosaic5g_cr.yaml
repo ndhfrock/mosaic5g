@@ -7,6 +7,7 @@ spec:
   size: 1
   cnImage: "mosaic5gecosys/oaicn:1.1"
   ranImage: "mosaic5gecosys/oairan:1.1"
+  flexRANImage: ""
   mcc: "208"                 
   mnc: "93"                   
   eutraBand: "7"             

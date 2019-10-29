@@ -16,6 +16,7 @@ type Mosaic5gSpec struct {
 	Size                   int32  `json:"size" `
 	CNImage                string `json:"cnImage" yaml:"cnImage"`
 	RANImage               string `json:"ranImage" yaml:"ranImage"`
+	FlexRANImage           string `json:"flexRANImage" yaml:"flexRANImage"`
 	MCC                    string `json:"mcc" yaml:"mcc"`
 	MNC                    string `json:"mnc" yaml:"mnc"`
 	EutraBand              string `json:"eutraBand" yaml:"eutraBand"`
