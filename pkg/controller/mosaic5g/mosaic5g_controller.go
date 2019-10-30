@@ -240,8 +240,8 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	///wait 1 minutes for oaicn and flexran finish deploying
 	//sometimes oai-cn takes time to connect to mysql
-	reqLogger.Info("Waiting 1 minutes for OAICN and FlexRAN finish setting up before deploying OAI-RAN")
-	time.Sleep(60 * time.Second)
+	reqLogger.Info("Waiting 20 seconds for OAICN and FlexRAN finish setting up before deploying OAI-RAN")
+	time.Sleep(20 * time.Second)
 
 	// Create an oairan deployment
 	ran := &appsv1.Deployment{}
