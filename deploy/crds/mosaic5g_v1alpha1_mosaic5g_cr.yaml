@@ -20,6 +20,6 @@ spec:
   mmeDomainName: "oaicn"
   spgwDomainName: "oaicn"
   mysqlDomainName: "mysql"
-  dns: "140.118.123.254"
+  dns: "8.8.8.8"
   flexRAN: false
   flexRANDomainName: "flexran"
