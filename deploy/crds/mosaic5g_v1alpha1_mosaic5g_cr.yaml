@@ -5,8 +5,8 @@ metadata:
 spec:
   # Add fields here
   size: 1
-  cnImage: "mosaic5gecosys/oaicn:1.1"
-  ranImage: "mosaic5gecosys/oairan:1.1"
+  cnImage: "ndhfrock/oaicn:1.0"
+  ranImage: "ndhfrock/oairan:1.0"
   flexRANImage: "mosaic5gecosys/flexran:0.1"
   mcc: "208"                 
   mnc: "93"                   
