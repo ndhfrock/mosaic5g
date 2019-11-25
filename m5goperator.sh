@@ -31,6 +31,8 @@ init(){
     echo "Applying crd..."
     kubectl create -f deploy/crds/mosaic5g_v1alpha1_mosaic5g_crd.yaml
     sleep 3
+    sudo mkdir -p /mnt/esdata
+    sudo chmod 777 /mnt/esdata
     echo "Done, now run [local] or [container start] to create your operator"
 }
 
