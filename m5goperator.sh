@@ -39,11 +39,11 @@ clean(){
 }
 
 watch_dep(){
-    sudo watch -n1 kubectl get deployment 
+    sudo watch -n1 kubectl get deployment  
 }
 
 watch_pods(){
-    sudo watch -n1 kubectl get pods 
+    sudo watch -n1 kubectl get pods -o wide
 }
 
 push_image() {

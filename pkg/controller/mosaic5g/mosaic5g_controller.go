@@ -125,6 +125,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
+	//Create config map for mosaic 5g instances
 	new := r.genConfigMap(instance)
 	config := &v1.ConfigMap{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: new.GetName(), Namespace: instance.Namespace}, config)
@@ -238,9 +239,61 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 
-	///wait 1 minutes for oaicn and flexran finish deploying
+	// Define a new Elasticsearch statefulset
+	es := &appsv1.StatefulSet{}
+	esDeployment := r.deploymentForElasticsearch(instance)
+	// Check if Elasticsearch StatefulSet already exists, if not create a new one
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: esDeployment.GetName(), Namespace: instance.Namespace}, es)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a new StatefulSet", "Statefulset.Namespace", esDeployment.Namespace, "Statefulset.Name", esDeployment.Name)
+		err = r.client.Create(context.TODO(), esDeployment)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new StatefulSet", "StatefulSet.Namespace", esDeployment.Namespace, "StatefulSet.Name", esDeployment.Name)
+			return reconcile.Result{}, err
+		}
+		// Define a new elasticsearch service
+		esService := r.genESService(instance)
+		err = r.client.Create(context.TODO(), esService)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", esService.Namespace, "Service.Name", esService.Name)
+			return reconcile.Result{}, err
+		}
+		// Deployment created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Elasticsearch Failed to get StatefulSet")
+		return reconcile.Result{}, err
+	}
+
+	// Define a new kibana statefulset
+	kib := &appsv1.Deployment{}
+	kibDeployment := r.deploymentForKibana(instance)
+	// Check if Elasticsearch StatefulSet already exists, if not create a new one
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: kibDeployment.GetName(), Namespace: instance.Namespace}, kib)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a new StatefulSet", "Statefulset.Namespace", kibDeployment.Namespace, "Statefulset.Name", kibDeployment.Name)
+		err = r.client.Create(context.TODO(), kibDeployment)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new StatefulSet", "StatefulSet.Namespace", kibDeployment.Namespace, "StatefulSet.Name", kibDeployment.Name)
+			return reconcile.Result{}, err
+		}
+		// Define a new kibana service
+		kibService := r.genKibanaService(instance)
+		err = r.client.Create(context.TODO(), kibService)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", kibService.Namespace, "Service.Name", kibService.Name)
+			return reconcile.Result{}, err
+		}
+		// Deployment created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Elasticsearch Failed to get StatefulSet")
+		return reconcile.Result{}, err
+	}
+
+	///wait 20 seconds for everything to finish deploying
 	//sometimes oai-cn takes time to connect to mysql
-	reqLogger.Info("Waiting 20 seconds for OAICN and FlexRAN finish setting up before deploying OAI-RAN")
+	reqLogger.Info("Waiting 20 seconds for everything finish setting up before deploying OAI-RAN")
 	time.Sleep(20 * time.Second)
 
 	// Create an oairan deployment
@@ -704,6 +757,211 @@ func (r *ReconcileMosaic5g) genFlexRANService(m *mosaic5gv1alpha1.Mosaic5g) *v1.
 	service.Namespace = m.Namespace
 	service.Labels = selectMap
 	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, service, r.scheme)
+	return service
+}
+
+//deploymentForElasticsearch will deploy elasticsearch
+func (r *ReconcileMosaic5g) deploymentForElasticsearch(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.StatefulSet {
+	labels := make(map[string]string)
+	labels["app"] = "elasticsearch"
+	var set *appsv1.StatefulSet
+	set = &appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "elasticsearch",
+			Namespace: m.Namespace,
+		},
+		Spec: appsv1.StatefulSetSpec{
+			ServiceName: "elasticsearch",
+			Replicas:    &m.Spec.Size,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: labels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: corev1.PodSpec{
+					InitContainers: []corev1.Container{
+						{
+							Name:    "fix-permissions",
+							Image:   "busybox",
+							Command: []string{"sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"},
+							SecurityContext: &corev1.SecurityContext{
+								Privileged: util.NewTrue(),
+							},
+							VolumeMounts: []corev1.VolumeMount{{
+								Name:      "data",
+								MountPath: "/usr/share/elasticsearch/data",
+							}},
+						},
+						{
+							Name:    "increase-vm-max-map",
+							Image:   "busybox",
+							Command: []string{"sysctl", "-w", "vm.max_map_count=262144"},
+							SecurityContext: &corev1.SecurityContext{
+								Privileged: util.NewTrue(),
+							},
+						},
+						{
+							Name:    "increase-fd-ulimit",
+							Image:   "busybox",
+							Command: []string{"sh", "-c", "ulimit -n 65536"},
+							SecurityContext: &corev1.SecurityContext{
+								Privileged: util.NewTrue(),
+							},
+						},
+					},
+					Containers: []corev1.Container{
+						{
+							Name:  "elasticsearch",
+							Image: "docker.elastic.co/elasticsearch/elasticsearch:7.4.2",
+							Env: []corev1.EnvVar{
+								{
+									Name:  "discovery.type",
+									Value: "single-node",
+								},
+								{
+									Name:  "ES_JAVA_OPTS",
+									Value: "-Xms512m -Xmx512m",
+								},
+							},
+							Ports: []corev1.ContainerPort{
+								{
+									Name:          "client",
+									ContainerPort: 9200,
+								},
+								{
+									Name:          "nodes",
+									ContainerPort: 9300,
+								},
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "data",
+									MountPath: "/usr/share/elasticsearch/data",
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "data",
+							VolumeSource: corev1.VolumeSource{
+								HostPath: &corev1.HostPathVolumeSource{
+									Path: "/mnt/esdata",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	// Set Elasticsearch instance as the owner and controller
+	controllerutil.SetControllerReference(m, set, r.scheme)
+	return set
+}
+
+//genESService create elasticsearch service for other's to use
+func (r *ReconcileMosaic5g) genESService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
+	selectMap := make(map[string]string)
+	selectMap["app"] = "elasticsearch"
+	var service *v1.Service
+	service = &v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "elasticsearch",
+			Namespace: m.Namespace,
+		},
+		Spec: v1.ServiceSpec{
+			Ports: []v1.ServicePort{
+				{
+					Name: "client",
+					Port: 9200,
+				},
+				{
+					Name: "nodes",
+					Port: 9300,
+				},
+			},
+			Selector: selectMap,
+		},
+	}
+	// Set Elasticsearch instance as the owner and controller
+	controllerutil.SetControllerReference(m, service, r.scheme)
+	return service
+}
+
+//deploymentForKibana will deploy kibana
+func (r *ReconcileMosaic5g) deploymentForKibana(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+	selectMap := make(map[string]string)
+	selectMap["app"] = "kibana"
+	var dep *appsv1.Deployment
+	dep = &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "kibana",
+			Namespace: m.Namespace,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &m.Spec.Size,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: selectMap,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: selectMap,
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:  "kibana",
+							Image: "docker.elastic.co/kibana/kibana:7.4.2",
+							Env: []corev1.EnvVar{
+								{
+									Name:  "ELASTICSEARCH_URL",
+									Value: "http://elasticsearch:9200",
+								},
+							},
+							Ports: []corev1.ContainerPort{
+								{
+									ContainerPort: 5601,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	// Set Elasticsearch instance as the owner and controller
+	controllerutil.SetControllerReference(m, dep, r.scheme)
+	return dep
+}
+
+//genKibanaService create kibana service for other's to use
+func (r *ReconcileMosaic5g) genKibanaService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
+	selectMap := make(map[string]string)
+	selectMap["app"] = "kibana"
+	selectMaps := make(map[string]string)
+	selectMaps["service"] = "kibana"
+	var service *v1.Service
+	service = &v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "kibana",
+			Namespace: m.Namespace,
+			Labels:    selectMaps,
+		},
+		Spec: v1.ServiceSpec{
+			Ports: []v1.ServicePort{
+				{
+					Port: 5601,
+					Name: "webinterface",
+				},
+			},
+			Selector: selectMap,
+		},
+	}
+	// Set Elasticsearch instance as the owner and controller
 	controllerutil.SetControllerReference(m, service, r.scheme)
 	return service
 }
