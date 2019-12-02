@@ -291,11 +291,6 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
-	///wait 20 seconds for everything to finish deploying
-	//sometimes oai-cn takes time to connect to mysql
-	reqLogger.Info("Waiting 20 seconds for everything finish setting up before deploying OAI-RAN")
-	time.Sleep(20 * time.Second)
-
 	// Create an oairan deployment
 	ran := &appsv1.Deployment{}
 	ranDeployment := r.deploymentForRAN(instance)
