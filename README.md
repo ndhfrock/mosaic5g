@@ -112,7 +112,7 @@ $ ./api.sh init
 
 # deploy OAI Container/Pod
 $ ./api.sh apply_cr #to use snap ran
-$ ./api.sh apply_cr_slicing # to use Samuel's eNB (LTE_Mac_scheduler_with_network_slicing)
+$ ./api.sh apply_cr_slicing # to use Samuel's eNB (https://gitlab.com/changshengliusamuel/LTE_Mac_scheduler_with_network_slicing.git -b flexran_LTE_slicing_integration)
 ```
 
 
