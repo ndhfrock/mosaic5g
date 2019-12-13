@@ -24,3 +24,99 @@ Just a little line command to deploy everything.
 - createk8s.sh : shell file to create a kubernetes cluster
 - m5goperator.sh : shell file to run this operator on kubernetes
 - api.sh : shell file to apply the custom resource, to deploy oai on kubernetes (deploy, update, delete)
+
+## Tutorial
+https://hackmd.io/3F62V1JXSqmarN5XLRgoKg?view
+
+Use createk8s.sh
+
+- Edit createk8s.sh first
+```shell
+KUBE_VERSION="1.15.1-00"
+export KUBECONFIG=/home/nadhif/.kube/config  # change nadhif to your hostname
+export OPERATOR_NAME=m5g-operator
+export MYNAME=${USER}
+export MYDNS="140.118.31.99"  # change this to your dns
+```
+
+- Build Kubernetes Environtment
+
+```shell=
+$ ./createk8s.sh install_req (install kubelet, kubectl, kubeadm)
+$ ./createk8s.sh start flannel (start kubernetes flannel) (reccomended)
+#or
+$ ./createk8s.sh start calico (start kubernetes calico)
+```
+:::warning
+Do this if you are using Ubuntu 16.04
+```shell=
+# Edit coredns
+$ kubectl edit cm coredns -n kube-system
+
+# delete ‘loop’ ,save and exit
+
+$ kubectl -n kube-system delete pod -l k8s-app=[kube-dns|core-dns]
+# it's fine if the last one doesn't work
+```
+:::
+
+:::danger
+If you got this error when creating the kubernetes cluster
+```shell=
+[kubelet-check] The HTTP call equal to 'curl -sSL http://localhost:10248/healthz' failed with error: Get http://localhost:10248/healthz: dial tcp 127.0.0.1:10248: connect: connection refused.
+[kubelet-check] It seems like the kubelet isn't running or healthy.
+[kubelet-check] The HTTP call equal to 'curl -sSL http://localhost:10248/healthz' failed with error: Get http://localhost:10248/healthz: dial tcp 127.0.0.1:10248: connect: connection refused.
+
+Unfortunately, an error has occurred:
+            timed out waiting for the condition
+
+This error is likely caused by:
+            - The kubelet is not running
+            - The kubelet is unhealthy due to a misconfiguration of the node in some way (required cgroups disabled)
+            - No internet connection is available so the kubelet cannot pull or find the following control plane images:
+                - k8s.gcr.io/kube-apiserver-amd64:v1.11.2
+                - k8s.gcr.io/kube-controller-manager-amd64:v1.11.2
+                - k8s.gcr.io/kube-scheduler-amd64:v1.11.2
+                - k8s.gcr.io/etcd-amd64:3.2.18
+                - You can check or miligate this in beforehand with "kubeadm config images pull" to make sure the images
+                  are downloaded locally and cached.
+```
+:::success
+There may be something wrong with kubelet, so do this
+```shell=
+$ sudo swapoff -a
+$ sudo sed -i '/ swap / s/^/#/' /etc/fstab
+```
+Then reboot the machine
+:::
+
+
+## M5G Operator Development
+[My M5g Operator Development Note](https://hackmd.io/erL2Vn_VRmClrvfymGTlfA?view)
+
+
+## Setup M5G Operator
+
+```shell=
+# apply M5G Operator crd to kubernetes
+$ ./m5goperator.sh init 
+
+# start m5g as a container/pod in kubernetes
+$ ./m5goperator.sh container start 
+
+# monitor all running pods and its ip address
+$ ./m5goperator watch_pods
+```
+
+## Deploy OAI Container/Pod
+```shell=
+# deploy cluster role for api access
+$ ./api.sh init
+
+# deploy OAI Container/Pod
+$ ./api.sh apply_cr #to use snap ran
+$ ./api.sh apply_cr_slicing # to use Samuel's eNB (LTE_Mac_scheduler_with_network_slicing)
+```
+
+
+OAI-ENB will run by itself, wait until your usrp is running and try to connect a ue
