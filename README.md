@@ -47,8 +47,8 @@ $ ./createk8s.sh start flannel (start kubernetes flannel) (reccomended)
 #or
 $ ./createk8s.sh start calico (start kubernetes calico)
 ```
-:::warning
-Do this if you are using Ubuntu 16.04
+
+- Do this if you are using Ubuntu 16.04
 ```shell=
 # Edit coredns
 $ kubectl edit cm coredns -n kube-system
@@ -58,10 +58,8 @@ $ kubectl edit cm coredns -n kube-system
 $ kubectl -n kube-system delete pod -l k8s-app=[kube-dns|core-dns]
 # it's fine if the last one doesn't work
 ```
-:::
 
-:::danger
-If you got this error when creating the kubernetes cluster
+- If you got this error when creating the kubernetes cluster
 ```shell=
 [kubelet-check] The HTTP call equal to 'curl -sSL http://localhost:10248/healthz' failed with error: Get http://localhost:10248/healthz: dial tcp 127.0.0.1:10248: connect: connection refused.
 [kubelet-check] It seems like the kubelet isn't running or healthy.
@@ -81,14 +79,13 @@ This error is likely caused by:
                 - You can check or miligate this in beforehand with "kubeadm config images pull" to make sure the images
                   are downloaded locally and cached.
 ```
-:::success
-There may be something wrong with kubelet, so do this
+
+- There may be something wrong with kubelet, so do this
 ```shell=
 $ sudo swapoff -a
 $ sudo sed -i '/ swap / s/^/#/' /etc/fstab
 ```
 Then reboot the machine
-:::
 
 
 ## M5G Operator Development
