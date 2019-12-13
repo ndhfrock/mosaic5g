@@ -2,6 +2,10 @@
 
 A Kubernetes Operator for automatic Mosaic5G deployment on top of a Kubernetes Cluster
 
+It will deploy OpenAirInterface, FlexRAN, Elasticsearch, and Kibana and auto configure everything.
+
+Just a little line command to deploy everything.
+
 ## Project layout
 
 
