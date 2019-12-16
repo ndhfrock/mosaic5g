@@ -304,7 +304,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	// Check if the oai-ran deployment already exists, if not create a new one
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: ranDeployment.GetName(), Namespace: instance.Namespace}, ran)
 	if err != nil && errors.IsNotFound(err) {
-		if flexran.Status.ReadyReplicas == 0 {
+		if flexran.Status.ReadyReplicas == 0 && instance.Spec.FlexRAN == true {
 			d, _ := time.ParseDuration("60s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No flexran POD is ready, 60 seconds backoff")
 		}
@@ -312,7 +312,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			d, _ := time.ParseDuration("60s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No oai-cn POD is ready, 60 seconds backoff")
 		}
-		reqLogger.Info("CN & FlexRAN are ready")
+		reqLogger.Info("CN are ready")
 		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", ranDeployment.Namespace, "Deployment.Name", ranDeployment.Name)
 		err = r.client.Create(context.TODO(), ranDeployment)
 		if err != nil {
