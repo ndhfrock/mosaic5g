@@ -206,89 +206,96 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 
-	// Creat a flexran deployment
 	flexran := &appsv1.Deployment{}
 	flexranDeployment := r.deploymentForFlexRAN(instance)
-	// Check if theflexran deployment already exists, if not create a new one
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: flexranDeployment.GetName(), Namespace: instance.Namespace}, flexran)
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", flexranDeployment.Namespace, "Deployment.Name", flexranDeployment.Name)
-		err = r.client.Create(context.TODO(), flexranDeployment)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", flexranDeployment.Namespace, "Deployment.Name", flexranDeployment.Name)
+	// If flexran true then deploy FlexRAN
+	if instance.Spec.FlexRAN == true {
+		// Creat a flexran deployment
+		// Check if theflexran deployment already exists, if not create a new one
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: flexranDeployment.GetName(), Namespace: instance.Namespace}, flexran)
+		if err != nil && errors.IsNotFound(err) {
+			reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", flexranDeployment.Namespace, "Deployment.Name", flexranDeployment.Name)
+			err = r.client.Create(context.TODO(), flexranDeployment)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", flexranDeployment.Namespace, "Deployment.Name", flexranDeployment.Name)
+				return reconcile.Result{}, err
+			}
+			// Deployment created successfully. Let's wait for it to be ready
+			d, _ := time.ParseDuration("30s")
+			return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
+		} else if err != nil {
+			reqLogger.Error(err, "Failed to get a FlexRAN Deployment")
 			return reconcile.Result{}, err
 		}
-		// Deployment created successfully. Let's wait for it to be ready
-		d, _ := time.ParseDuration("30s")
-		return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
-	} else if err != nil {
-		reqLogger.Error(err, "Failed to get a FlexRAN Deployment")
-		return reconcile.Result{}, err
+
+		// Create an flexran service, so that flexran could connect with other pods
+		fservice := &v1.Service{}
+		flexranService := r.genFlexRANService(instance)
+		// Check if the oai-cn service already exists, if not create a new one
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: flexranService.GetName(), Namespace: instance.Namespace}, fservice)
+		if err != nil && errors.IsNotFound(err) {
+			err = r.client.Create(context.TODO(), flexranService)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", flexranService.Namespace, "Service.Name", flexranService.Name)
+				return reconcile.Result{}, err
+			}
+		}
 	}
 
-	// Create an flexran service, so that flexran could connect with other pods
-	fservice := &v1.Service{}
-	flexranService := r.genFlexRANService(instance)
-	// Check if the oai-cn service already exists, if not create a new one
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: flexranService.GetName(), Namespace: instance.Namespace}, fservice)
-	if err != nil && errors.IsNotFound(err) {
-		err = r.client.Create(context.TODO(), flexranService)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", flexranService.Namespace, "Service.Name", flexranService.Name)
+	if instance.Spec.Elasticsearch == true {
+		// Define a new Elasticsearch statefulset
+		es := &appsv1.StatefulSet{}
+		esDeployment := r.deploymentForElasticsearch(instance)
+		// Check if Elasticsearch StatefulSet already exists, if not create a new one
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: esDeployment.GetName(), Namespace: instance.Namespace}, es)
+		if err != nil && errors.IsNotFound(err) {
+			reqLogger.Info("Creating a new StatefulSet", "Statefulset.Namespace", esDeployment.Namespace, "Statefulset.Name", esDeployment.Name)
+			err = r.client.Create(context.TODO(), esDeployment)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new StatefulSet", "StatefulSet.Namespace", esDeployment.Namespace, "StatefulSet.Name", esDeployment.Name)
+				return reconcile.Result{}, err
+			}
+			// Define a new elasticsearch service
+			esService := r.genESService(instance)
+			err = r.client.Create(context.TODO(), esService)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", esService.Namespace, "Service.Name", esService.Name)
+				return reconcile.Result{}, err
+			}
+			// Deployment created successfully - return and requeue
+			return reconcile.Result{Requeue: true}, nil
+		} else if err != nil {
+			reqLogger.Error(err, "Elasticsearch Failed to get StatefulSet")
 			return reconcile.Result{}, err
 		}
 	}
 
-	// Define a new Elasticsearch statefulset
-	es := &appsv1.StatefulSet{}
-	esDeployment := r.deploymentForElasticsearch(instance)
-	// Check if Elasticsearch StatefulSet already exists, if not create a new one
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: esDeployment.GetName(), Namespace: instance.Namespace}, es)
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new StatefulSet", "Statefulset.Namespace", esDeployment.Namespace, "Statefulset.Name", esDeployment.Name)
-		err = r.client.Create(context.TODO(), esDeployment)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new StatefulSet", "StatefulSet.Namespace", esDeployment.Namespace, "StatefulSet.Name", esDeployment.Name)
+	if instance.Spec.Kibana == true {
+		// Define a new kibana statefulset
+		kib := &appsv1.Deployment{}
+		kibDeployment := r.deploymentForKibana(instance)
+		// Check if Elasticsearch StatefulSet already exists, if not create a new one
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: kibDeployment.GetName(), Namespace: instance.Namespace}, kib)
+		if err != nil && errors.IsNotFound(err) {
+			reqLogger.Info("Creating a new StatefulSet", "Statefulset.Namespace", kibDeployment.Namespace, "Statefulset.Name", kibDeployment.Name)
+			err = r.client.Create(context.TODO(), kibDeployment)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new StatefulSet", "StatefulSet.Namespace", kibDeployment.Namespace, "StatefulSet.Name", kibDeployment.Name)
+				return reconcile.Result{}, err
+			}
+			// Define a new kibana service
+			kibService := r.genKibanaService(instance)
+			err = r.client.Create(context.TODO(), kibService)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", kibService.Namespace, "Service.Name", kibService.Name)
+				return reconcile.Result{}, err
+			}
+			// Deployment created successfully - return and requeue
+			return reconcile.Result{Requeue: true}, nil
+		} else if err != nil {
+			reqLogger.Error(err, "Elasticsearch Failed to get StatefulSet")
 			return reconcile.Result{}, err
 		}
-		// Define a new elasticsearch service
-		esService := r.genESService(instance)
-		err = r.client.Create(context.TODO(), esService)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", esService.Namespace, "Service.Name", esService.Name)
-			return reconcile.Result{}, err
-		}
-		// Deployment created successfully - return and requeue
-		return reconcile.Result{Requeue: true}, nil
-	} else if err != nil {
-		reqLogger.Error(err, "Elasticsearch Failed to get StatefulSet")
-		return reconcile.Result{}, err
-	}
-
-	// Define a new kibana statefulset
-	kib := &appsv1.Deployment{}
-	kibDeployment := r.deploymentForKibana(instance)
-	// Check if Elasticsearch StatefulSet already exists, if not create a new one
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: kibDeployment.GetName(), Namespace: instance.Namespace}, kib)
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new StatefulSet", "Statefulset.Namespace", kibDeployment.Namespace, "Statefulset.Name", kibDeployment.Name)
-		err = r.client.Create(context.TODO(), kibDeployment)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new StatefulSet", "StatefulSet.Namespace", kibDeployment.Namespace, "StatefulSet.Name", kibDeployment.Name)
-			return reconcile.Result{}, err
-		}
-		// Define a new kibana service
-		kibService := r.genKibanaService(instance)
-		err = r.client.Create(context.TODO(), kibService)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", kibService.Namespace, "Service.Name", kibService.Name)
-			return reconcile.Result{}, err
-		}
-		// Deployment created successfully - return and requeue
-		return reconcile.Result{Requeue: true}, nil
-	} else if err != nil {
-		reqLogger.Error(err, "Elasticsearch Failed to get StatefulSet")
-		return reconcile.Result{}, err
 	}
 
 	// Create an oairan deployment

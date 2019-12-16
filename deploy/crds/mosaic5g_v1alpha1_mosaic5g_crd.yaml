@@ -39,6 +39,8 @@ spec:
               type: string
             downlinkFrequency:
               type: string
+            elasticsearch:
+              type: boolean
             eutraBand:
               type: string
             flexRAN:
@@ -49,6 +51,8 @@ spec:
               type: string
             hssDomainName:
               type: string
+            kibana:
+              type: boolean
             mcc:
               type: string
             mmeDomainName:
@@ -83,6 +87,8 @@ spec:
           - downlinkFrequency
           - uplinkFrequencyOffset
           - flexRAN
+          - elasticsearch
+          - kibana
           - configurationPathofCN
           - configurationPathofRAN
           - snapBinaryPath

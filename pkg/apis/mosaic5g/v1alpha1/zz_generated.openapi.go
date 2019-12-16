@@ -127,6 +127,18 @@ func schema_pkg_apis_mosaic5g_v1alpha1_Mosaic5gSpec(ref common.ReferenceCallback
 							Format: "",
 						},
 					},
+					"elasticsearch": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+					"kibana": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
 					"configurationPathofCN": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -182,7 +194,7 @@ func schema_pkg_apis_mosaic5g_v1alpha1_Mosaic5gSpec(ref common.ReferenceCallback
 						},
 					},
 				},
-				Required: []string{"size", "cnImage", "ranImage", "flexRANImage", "mcc", "mnc", "eutraBand", "downlinkFrequency", "uplinkFrequencyOffset", "flexRAN", "configurationPathofCN", "configurationPathofRAN", "snapBinaryPath", "dns", "hssDomainName", "mmeDomainName", "spgwDomainName", "mysqlDomainName", "flexRANDomainName"},
+				Required: []string{"size", "cnImage", "ranImage", "flexRANImage", "mcc", "mnc", "eutraBand", "downlinkFrequency", "uplinkFrequencyOffset", "flexRAN", "elasticsearch", "kibana", "configurationPathofCN", "configurationPathofRAN", "snapBinaryPath", "dns", "hssDomainName", "mmeDomainName", "spgwDomainName", "mysqlDomainName", "flexRANDomainName"},
 			},
 		},
 		Dependencies: []string{},

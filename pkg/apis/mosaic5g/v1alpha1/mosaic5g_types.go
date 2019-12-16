@@ -23,6 +23,8 @@ type Mosaic5gSpec struct {
 	DownlinkFrequency      string `json:"downlinkFrequency" yaml:"downlinkFrequency"`
 	UplinkFrequencyOffset  string `json:"uplinkFrequencyOffset" yaml:"uplinkFrequencyOffset"`
 	FlexRAN                bool   `json:"flexRAN" yaml:"flexRAN"`
+	Elasticsearch          bool   `json:"elasticsearch" yaml:"elasticsearch"`
+	Kibana                 bool   `json:"kibana" yaml:"kibana"`
 	ConfigurationPathofCN  string `json:"configurationPathofCN" yaml:"configurationPathofCN"`
 	ConfigurationPathofRAN string `json:"configurationPathofRAN" yaml:"configurationPathofRAN"`
 	SnapBinaryPath         string `json:"snapBinaryPath" yaml:"snapBinaryPath"`
