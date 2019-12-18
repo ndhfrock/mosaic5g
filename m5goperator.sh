@@ -45,7 +45,7 @@ watch_dep(){
 }
 
 watch_pods(){
-    sudo watch -n1 kubectl get pods -o wide
+    sudo watch -n1 kubectl get pods -A -o wide
 }
 
 push_image() {
