@@ -25,6 +25,8 @@ type Mosaic5gSpec struct {
 	FlexRAN                bool   `json:"flexRAN" yaml:"flexRAN"`
 	Elasticsearch          bool   `json:"elasticsearch" yaml:"elasticsearch"`
 	Kibana                 bool   `json:"kibana" yaml:"kibana"`
+	DroneStore             bool   `json:"droneStore" yaml:"droneStore"`
+	RRMKPIStore            bool   `json:"rrmkpiStore" yaml:"rrmkpiStore"`
 	ConfigurationPathofCN  string `json:"configurationPathofCN" yaml:"configurationPathofCN"`
 	ConfigurationPathofRAN string `json:"configurationPathofRAN" yaml:"configurationPathofRAN"`
 	SnapBinaryPath         string `json:"snapBinaryPath" yaml:"snapBinaryPath"`

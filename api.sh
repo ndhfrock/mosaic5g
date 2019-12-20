@@ -10,7 +10,7 @@ apply_cr(){
       -H "Authorization: Bearer ${TOKEN}"\
       --insecure \
       -X POST ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs \
-      -d '{"apiVersion":"mosaic5g.com/v1alpha1","kind":"Mosaic5g","metadata":{"name":"mosaic5g"},"spec":{"size":1,"cnImage":"ndhfrock/oaicn:1.0","ranImage":"ndhfrock/oairan:1.1","flexRANImage":"mosaic5gecosys/flexran:0.1","mcc":"208","mnc":"93","eutraBand":"7","downlinkFrequency":"2685000000L","uplinkFrequencyOffset":"-120000000","configurationPathofCN":"/var/snap/oai-cn/current/","configurationPathofRAN":"/var/snap/oai-ran/current/","snapBinaryPath":"/snap/bin/","hssDomainName":"oaicn","mmeDomainName":"oaicn","spgwDomainName":"oaicn","mysqlDomainName":"mysql","dns":"8.8.8.8","flexRAN":true, "elasticsearch":true, "kibana":true,"flexRANDomainName":"flexran"}}'
+      -d '{"apiVersion":"mosaic5g.com/v1alpha1","kind":"Mosaic5g","metadata":{"name":"mosaic5g"},"spec":{"size":1,"cnImage":"ndhfrock/oaicn:1.0","ranImage":"ndhfrock/oairan:1.1","flexRANImage":"mosaic5gecosys/flexran:0.1","mcc":"208","mnc":"93","eutraBand":"7","downlinkFrequency":"2685000000L","uplinkFrequencyOffset":"-120000000","configurationPathofCN":"/var/snap/oai-cn/current/","configurationPathofRAN":"/var/snap/oai-ran/current/","snapBinaryPath":"/snap/bin/","hssDomainName":"oaicn","mmeDomainName":"oaicn","spgwDomainName":"oaicn","mysqlDomainName":"mysql","dns":"8.8.8.8","flexRAN":true, "elasticsearch":false, "kibana":false, "droneStore":true, "rrmkpiStore":true, "flexRANDomainName":"flexran"}}'
 }
 
 delete_cr(){
@@ -27,7 +27,7 @@ apply_cr_slicing(){
       -H "Authorization: Bearer ${TOKEN}"\
       --insecure \
       -X POST ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs \
-      -d '{"apiVersion":"mosaic5g.com/v1alpha1","kind":"Mosaic5g","metadata":{"name":"mosaic5g"},"spec":{"size":1,"cnImage":"ndhfrock/oaicn:1.0","ranImage":"ndhfrock/oairanslicing:1.0","flexRANImage":"mosaic5gecosys/flexran:0.1","mcc":"208","mnc":"93","eutraBand":"7","downlinkFrequency":"2685000000L","uplinkFrequencyOffset":"-120000000","configurationPathofCN":"/var/snap/oai-cn/current/","configurationPathofRAN":"/LTE_Mac_scheduler_with_network_slicing/targets/PROJECTS/GENERIC-LTE-EPC/CONF/","snapBinaryPath":"/snap/bin/","hssDomainName":"oaicn","mmeDomainName":"oaicn","spgwDomainName":"oaicn","mysqlDomainName":"mysql","dns":"8.8.8.8","flexRAN":true, "elasticsearch":true, "kibana":true, "flexRANDomainName":"flexran"}}'
+      -d '{"apiVersion":"mosaic5g.com/v1alpha1","kind":"Mosaic5g","metadata":{"name":"mosaic5g"},"spec":{"size":1,"cnImage":"ndhfrock/oaicn:1.0","ranImage":"ndhfrock/oairanslicing:1.0","flexRANImage":"mosaic5gecosys/flexran:0.1","mcc":"208","mnc":"93","eutraBand":"7","downlinkFrequency":"2685000000L","uplinkFrequencyOffset":"-120000000","configurationPathofCN":"/var/snap/oai-cn/current/","configurationPathofRAN":"/LTE_Mac_scheduler_with_network_slicing/targets/PROJECTS/GENERIC-LTE-EPC/CONF/","snapBinaryPath":"/snap/bin/","hssDomainName":"oaicn","mmeDomainName":"oaicn","spgwDomainName":"oaicn","mysqlDomainName":"mysql","dns":"8.8.8.8","flexRAN":true, "elasticsearch":true, "kibana":true, "droneStore":true, "rrmkpiStore":true, "flexRANDomainName":"flexran"}}'
 }
 
 patch_12(){

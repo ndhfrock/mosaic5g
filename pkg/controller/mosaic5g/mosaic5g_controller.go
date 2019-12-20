@@ -242,6 +242,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 
+	//if elasticsearch config is true, deploy elasticsearch
 	if instance.Spec.Elasticsearch == true {
 		// Define a new Elasticsearch statefulset
 		es := &appsv1.StatefulSet{}
@@ -270,17 +271,18 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 
+	//if kibana config is true, deploy kibana
 	if instance.Spec.Kibana == true {
-		// Define a new kibana statefulset
+		// Define a new kibana deployment
 		kib := &appsv1.Deployment{}
 		kibDeployment := r.deploymentForKibana(instance)
-		// Check if Elasticsearch StatefulSet already exists, if not create a new one
+		// Check if Kibana Deployment already exists, if not create a new one
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: kibDeployment.GetName(), Namespace: instance.Namespace}, kib)
 		if err != nil && errors.IsNotFound(err) {
-			reqLogger.Info("Creating a new StatefulSet", "Statefulset.Namespace", kibDeployment.Namespace, "Statefulset.Name", kibDeployment.Name)
+			reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", kibDeployment.Namespace, "Deployment.Name", kibDeployment.Name)
 			err = r.client.Create(context.TODO(), kibDeployment)
 			if err != nil {
-				reqLogger.Error(err, "Failed to create new StatefulSet", "StatefulSet.Namespace", kibDeployment.Namespace, "StatefulSet.Name", kibDeployment.Name)
+				reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", kibDeployment.Namespace, "Deployment.Name", kibDeployment.Name)
 				return reconcile.Result{}, err
 			}
 			// Define a new kibana service
@@ -293,7 +295,65 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			// Deployment created successfully - return and requeue
 			return reconcile.Result{Requeue: true}, nil
 		} else if err != nil {
-			reqLogger.Error(err, "Elasticsearch Failed to get StatefulSet")
+			reqLogger.Error(err, "Kibana Failed to get Deployment")
+			return reconcile.Result{}, err
+		}
+	}
+
+	//if drone config is true, deploy drone store app
+	if instance.Spec.DroneStore == true {
+		// Define a new drone deployment
+		drone := &appsv1.Deployment{}
+		droneDeployment := r.deploymentForDrone(instance)
+		// Check if Drone Deployment already exists, if not create a new one
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: droneDeployment.GetName(), Namespace: instance.Namespace}, drone)
+		if err != nil && errors.IsNotFound(err) {
+			reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", droneDeployment.Namespace, "Deployment.Name", droneDeployment.Name)
+			err = r.client.Create(context.TODO(), droneDeployment)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", droneDeployment.Namespace, "Deployment.Name", droneDeployment.Name)
+				return reconcile.Result{}, err
+			}
+			// Define a new drone service
+			droneService := r.genDroneService(instance)
+			err = r.client.Create(context.TODO(), droneService)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", droneService.Namespace, "Service.Name", droneService.Name)
+				return reconcile.Result{}, err
+			}
+			// Deployment created successfully - return and requeue
+			return reconcile.Result{Requeue: true}, nil
+		} else if err != nil {
+			reqLogger.Error(err, "Drone Failed to get Deployment")
+			return reconcile.Result{}, err
+		}
+	}
+
+	//if rrmkpi config is true, deploy rrm-kpi store app
+	if instance.Spec.RRMKPIStore == true {
+		// Define a new rrmkpi deployment
+		drone := &appsv1.Deployment{}
+		droneDeployment := r.deploymentForRRMKPI(instance)
+		// Check if RRM-KPI Deployment already exists, if not create a new one
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: droneDeployment.GetName(), Namespace: instance.Namespace}, drone)
+		if err != nil && errors.IsNotFound(err) {
+			reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", droneDeployment.Namespace, "Deployment.Name", droneDeployment.Name)
+			err = r.client.Create(context.TODO(), droneDeployment)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", droneDeployment.Namespace, "Deployment.Name", droneDeployment.Name)
+				return reconcile.Result{}, err
+			}
+			// Define a new drone service
+			droneService := r.genDroneService(instance)
+			err = r.client.Create(context.TODO(), droneService)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", droneService.Namespace, "Service.Name", droneService.Name)
+				return reconcile.Result{}, err
+			}
+			// Deployment created successfully - return and requeue
+			return reconcile.Result{Requeue: true}, nil
+		} else if err != nil {
+			reqLogger.Error(err, "RRM-KPI Failed to get Deployment")
 			return reconcile.Result{}, err
 		}
 	}
@@ -964,6 +1024,128 @@ func (r *ReconcileMosaic5g) genKibanaService(m *mosaic5gv1alpha1.Mosaic5g) *v1.S
 		},
 	}
 	// Set Elasticsearch instance as the owner and controller
+	controllerutil.SetControllerReference(m, service, r.scheme)
+	return service
+}
+
+// deploymentForDrone returns a Drone Store App Deployment object
+func (r *ReconcileMosaic5g) deploymentForDrone(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+	var replicas int32
+	replicas = 1
+	selectMap := make(map[string]string)
+	selectMap["app"] = "oai"
+	dep := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "drone",
+			Namespace: m.Namespace,
+			Labels:    selectMap,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: selectMap,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: selectMap,
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{
+						Image: "ndhfrock/store-drone:1.0",
+						Name:  "drone",
+						Ports: []corev1.ContainerPort{{
+							ContainerPort: 8088,
+							Name:          "drone",
+						}},
+					}},
+					Affinity: util.GenAffinity("store"),
+				},
+			},
+		},
+	}
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, dep, r.scheme)
+	return dep
+}
+
+// genDroneService will generate a service so that we could access drone store app
+func (r *ReconcileMosaic5g) genDroneService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
+	var service *v1.Service
+	selectMap := make(map[string]string)
+	selectMap["app"] = "oai"
+	service = &v1.Service{}
+	service.Spec = v1.ServiceSpec{
+		Ports: []v1.ServicePort{
+			{Name: "drone", Port: 8088},
+		},
+		Selector:  selectMap,
+		ClusterIP: "None",
+	}
+	service.Name = "drone"
+	service.Namespace = m.Namespace
+	service.Labels = selectMap
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, service, r.scheme)
+	return service
+}
+
+// deploymentForRRMKPI returns a RRMKPI Store App Deployment object
+func (r *ReconcileMosaic5g) deploymentForRRMKPI(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+	var replicas int32
+	replicas = 1
+	selectMap := make(map[string]string)
+	selectMap["app"] = "oai"
+	dep := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "rrmkpi",
+			Namespace: m.Namespace,
+			Labels:    selectMap,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: selectMap,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: selectMap,
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{
+						Image: "ndhfrock/store-rrm_kpi:1.0",
+						Name:  "rrmkpi",
+						Ports: []corev1.ContainerPort{{
+							ContainerPort: 8088,
+							Name:          "rrmkpi",
+						}},
+					}},
+					Affinity: util.GenAffinity("store"),
+				},
+			},
+		},
+	}
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, dep, r.scheme)
+	return dep
+}
+
+// genRRMKPIService will generate a service so that we could access rrmkpi store app
+func (r *ReconcileMosaic5g) genRRMKPIService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
+	var service *v1.Service
+	selectMap := make(map[string]string)
+	selectMap["app"] = "oai"
+	service = &v1.Service{}
+	service.Spec = v1.ServiceSpec{
+		Ports: []v1.ServicePort{
+			{Name: "rrmkpi", Port: 8088},
+		},
+		Selector:  selectMap,
+		ClusterIP: "None",
+	}
+	service.Name = "rrmkpi"
+	service.Namespace = m.Namespace
+	service.Labels = selectMap
+	// Set Mosaic5g instance as the owner and controller
 	controllerutil.SetControllerReference(m, service, r.scheme)
 	return service
 }

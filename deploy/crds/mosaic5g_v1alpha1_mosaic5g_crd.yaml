@@ -39,6 +39,8 @@ spec:
               type: string
             downlinkFrequency:
               type: string
+            droneStore:
+              type: boolean
             elasticsearch:
               type: boolean
             eutraBand:
@@ -63,6 +65,8 @@ spec:
               type: string
             ranImage:
               type: string
+            rrmkpiStore:
+              type: boolean
             size:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                 Important: Run "operator-sdk generate k8s" to regenerate code after
@@ -89,6 +93,8 @@ spec:
           - flexRAN
           - elasticsearch
           - kibana
+          - droneStore
+          - rrmkpiStore
           - configurationPathofCN
           - configurationPathofRAN
           - snapBinaryPath
