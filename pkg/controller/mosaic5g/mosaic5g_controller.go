@@ -446,8 +446,10 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 
 // deploymentForRAN returns a Core Network Deployment object
 func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
-	ls := util.LabelsForMosaic5g(m.Name)
+	//ls := util.LabelsForMosaic5g(m.Name)
 	replicas := m.Spec.Size
+	labels := make(map[string]string)
+	labels["app"] = "oairan"
 	Annotations := make(map[string]string)
 	Annotations["container.apparmor.security.beta.kubernetes.io/"+m.Name+"-"+"oairan"] = "unconfined"
 	dep := &appsv1.Deployment{
@@ -455,15 +457,16 @@ func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *apps
 			Name:        m.GetName() + "-" + "oairan",
 			Namespace:   m.Namespace,
 			Annotations: Annotations,
+			Labels:      labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: ls,
+				MatchLabels: labels,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: ls,
+					Labels: labels,
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
@@ -1033,7 +1036,7 @@ func (r *ReconcileMosaic5g) deploymentForDrone(m *mosaic5gv1alpha1.Mosaic5g) *ap
 	var replicas int32
 	replicas = 1
 	selectMap := make(map[string]string)
-	selectMap["app"] = "oai"
+	selectMap["app"] = "store"
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "drone",
@@ -1057,8 +1060,44 @@ func (r *ReconcileMosaic5g) deploymentForDrone(m *mosaic5gv1alpha1.Mosaic5g) *ap
 							ContainerPort: 8088,
 							Name:          "drone",
 						}},
+						Command:         []string{"/sbin/init"},
+						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
+						VolumeMounts: []corev1.VolumeMount{{
+							Name:      "cgroup",
+							ReadOnly:  true,
+							MountPath: "/sys/fs/cgroup/",
+						}, {
+							Name:      "module",
+							ReadOnly:  true,
+							MountPath: "/lib/modules/",
+						}, {
+							Name:      "mosaic5g-config",
+							MountPath: "/root/config",
+						}},
 					}},
 					Affinity: util.GenAffinity("store"),
+					Volumes: []corev1.Volume{{
+						Name: "cgroup",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/sys/fs/cgroup/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}}, {
+						Name: "module",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/lib/modules/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}}, {
+						Name: "mosaic5g-config",
+						VolumeSource: corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "mosaic5g-config"},
+							},
+						}},
+					},
 				},
 			},
 		},
@@ -1072,7 +1111,7 @@ func (r *ReconcileMosaic5g) deploymentForDrone(m *mosaic5gv1alpha1.Mosaic5g) *ap
 func (r *ReconcileMosaic5g) genDroneService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
 	var service *v1.Service
 	selectMap := make(map[string]string)
-	selectMap["app"] = "oai"
+	selectMap["app"] = "store"
 	service = &v1.Service{}
 	service.Spec = v1.ServiceSpec{
 		Ports: []v1.ServicePort{
@@ -1094,7 +1133,7 @@ func (r *ReconcileMosaic5g) deploymentForRRMKPI(m *mosaic5gv1alpha1.Mosaic5g) *a
 	var replicas int32
 	replicas = 1
 	selectMap := make(map[string]string)
-	selectMap["app"] = "oai"
+	selectMap["app"] = "store"
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "rrmkpi",
@@ -1118,8 +1157,44 @@ func (r *ReconcileMosaic5g) deploymentForRRMKPI(m *mosaic5gv1alpha1.Mosaic5g) *a
 							ContainerPort: 8088,
 							Name:          "rrmkpi",
 						}},
+						Command:         []string{"/sbin/init"},
+						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
+						VolumeMounts: []corev1.VolumeMount{{
+							Name:      "cgroup",
+							ReadOnly:  true,
+							MountPath: "/sys/fs/cgroup/",
+						}, {
+							Name:      "module",
+							ReadOnly:  true,
+							MountPath: "/lib/modules/",
+						}, {
+							Name:      "mosaic5g-config",
+							MountPath: "/root/config",
+						}},
 					}},
 					Affinity: util.GenAffinity("store"),
+					Volumes: []corev1.Volume{{
+						Name: "cgroup",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/sys/fs/cgroup/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}}, {
+						Name: "module",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/lib/modules/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}}, {
+						Name: "mosaic5g-config",
+						VolumeSource: corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "mosaic5g-config"},
+							},
+						}},
+					},
 				},
 			},
 		},
@@ -1133,7 +1208,7 @@ func (r *ReconcileMosaic5g) deploymentForRRMKPI(m *mosaic5gv1alpha1.Mosaic5g) *a
 func (r *ReconcileMosaic5g) genRRMKPIService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
 	var service *v1.Service
 	selectMap := make(map[string]string)
-	selectMap["app"] = "oai"
+	selectMap["app"] = "store"
 	service = &v1.Service{}
 	service.Spec = v1.ServiceSpec{
 		Ports: []v1.ServicePort{
