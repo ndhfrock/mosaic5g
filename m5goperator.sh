@@ -53,6 +53,9 @@ push_image() {
     sed -i 's|REPLACE_IMAGE|ndhfrock/m5goperator:v0.0.1|g' deploy/operator.yaml
     docker push ndhfrock/m5goperator:v0.0.1
 }
+go_inside() {
+    kubectl exec -it $(kubectl get pods -l app=${1} -o custom-columns=:metadata.name) -- /bin/bash
+}
 
 main() {
     case ${1} in
@@ -74,7 +77,10 @@ main() {
         watch_pods)
             watch_pods
         ;;
-        push_image)
+	inside_pods)
+	   go_inside ${2}
+	;;
+	push_image)
             push_image
         ;;
         *)
@@ -89,6 +95,7 @@ main() {
             echo "      m5goperator.sh watch_deployment - watch all running deployment, refreshed every 1 second"
             echo "      m5goperator.sh watch_pods - watch all running pods, refreshed every 1 second"
             echo "      m5goperator.sh push_image - push your operator image to dockerhub"
+	    echo "      m5goperator.sh inside_pods [oaicn|mosaic5g|flexran] - access the pods (mosaic5g is ran pods)"
             echo ""
             echo "Default operator image is ndhfrock/m5goperator"
         ;;

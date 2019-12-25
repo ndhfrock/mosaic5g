@@ -24,17 +24,17 @@ apply_cr(){
 					 "uplinkFrequencyOffset"	:	"-120000000",
 					 "configurationPathofCN"	:	"/var/snap/oai-cn/current/",
 					 "configurationPathofRAN"	:	"/var/snap/oai-ran/current/",
-					 "snapBinaryPath"		:	"/snapbin/",
+					 "snapBinaryPath"		:	"/snap/bin/",
 					 "hssDomainName"		:	"oaicn",
 					 "mmeDomainName"		:	"oaicn",
 					 "spgwDomainName"		:	"oaicn",
 					 "mysqlDomainName"		:	"mysql",
 					 "dns"				:	"8.8.8.8",
 					 "flexRAN"			:	true,
-					 "elasticsearch"		:	true, 
-					 "kibana"			:	true, 
-					 "droneStore"			:	false, 
-					 "rrmkpiStore"			:	false, 
+					 "elasticsearch"		:	false, 
+					 "kibana"			:	false, 
+					 "droneStore"			:	true, 
+					 "rrmkpiStore"			:	true, 
 					 "flexRANDomainName"		:	"flexran"}}'
 }
 
@@ -66,17 +66,17 @@ apply_cr_slicing(){
 					 "uplinkFrequencyOffset"	:	"-120000000",
 					 "configurationPathofCN"	:	"/var/snap/oai-cn/current/",
 					 "configurationPathofRAN"	:	"/LTE_Mac_scheduler_with_network_slicing/targets/PROJECTS/GENERIC-LTE-EPC/CONF/",
-					 "snapBinaryPath"		:	"/snapbin/",
+					 "snapBinaryPath"		:	"/snap/bin/",
 					 "hssDomainName"		:	"oaicn",
 					 "mmeDomainName"		:	"oaicn",
 					 "spgwDomainName"		:	"oaicn",
 					 "mysqlDomainName"		:	"mysql",
 					 "dns"				:	"8.8.8.8",
 					 "flexRAN"			:	true,
-					 "elasticsearch"		:	true, 
-					 "kibana"			:	true, 
-					 "droneStore"			:	false, 
-					 "rrmkpiStore"			:	false, 
+					 "elasticsearch"		:	false, 
+					 "kibana"			:	false, 
+					 "droneStore"			:	true, 
+					 "rrmkpiStore"			:	true, 
 					 "flexRANDomainName"		:	"flexran"}}'
 }
 
@@ -140,7 +140,8 @@ main(){
          echo ""
          echo "Usage:"
          echo "      api.sh init - Apply defaultRole to kubernetes cluster"
-         echo "      api.sh apply_cr - Add all custom resource deployment"
+         echo "      api.sh apply_cr - Add custom resource deployment (uses snap oai-ran)"
+	 echo "      api.sh apply_cr_slicing - Add custom resource deployment (uses samuel's oai-ran)"
          echo "      api.sh delete_cr - Delete all Custom Resource Deployment"
          echo "      api.sh patch_11 - Change to OAICN and OAIRAN Docker image tag 1.1"
          echo "      api.sh patch_12 - Change to OAICN and OAI RAN Docker image tag 1.2"
