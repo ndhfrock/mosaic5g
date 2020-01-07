@@ -444,17 +444,17 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	return reconcile.Result{}, nil
 }
 
-// deploymentForRAN returns a Core Network Deployment object
+// deploymentForRAN returns a Radio Access Network Deployment object
 func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
 	//ls := util.LabelsForMosaic5g(m.Name)
 	replicas := m.Spec.Size
 	labels := make(map[string]string)
-	labels["app"] = "oairan"
+	labels["app"] = "ran"
 	Annotations := make(map[string]string)
-	Annotations["container.apparmor.security.beta.kubernetes.io/"+m.Name+"-"+"oairan"] = "unconfined"
+	Annotations["container.apparmor.security.beta.kubernetes.io/"+m.Name+"-"+"ran"] = "unconfined"
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.GetName() + "-" + "oairan",
+			Name:        "ran",
 			Namespace:   m.Namespace,
 			Annotations: Annotations,
 			Labels:      labels,
@@ -471,7 +471,7 @@ func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *apps
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
 						Image:           m.Spec.RANImage,
-						Name:            "oairan",
+						Name:            "ran",
 						Command:         []string{"/sbin/init"},
 						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
 						VolumeMounts: []corev1.VolumeMount{{
@@ -555,16 +555,16 @@ func (r *ReconcileMosaic5g) genConfigMap(m *mosaic5gv1alpha1.Mosaic5g) *v1.Confi
 
 // deploymentForCN returns a Core Network Deployment object
 func (r *ReconcileMosaic5g) deploymentForCN(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
-	cnName := m.Spec.MmeDomainName
+	//cnName := m.Spec.MmeDomainName
 	//ls := util.LabelsForMosaic5g(m.Name + cnName)
 	replicas := m.Spec.Size
 	labels := make(map[string]string)
-	labels["app"] = "oaicn"
+	labels["app"] = "cn"
 	Annotations := make(map[string]string)
 	Annotations["container.apparmor.security.beta.kubernetes.io/oaicn"] = "unconfined"
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.GetName() + "-" + cnName,
+			Name:        "cn",
 			Namespace:   m.Namespace,
 			Labels:      labels,
 			Annotations: Annotations,
@@ -581,7 +581,7 @@ func (r *ReconcileMosaic5g) deploymentForCN(m *mosaic5gv1alpha1.Mosaic5g) *appsv
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
 						Image:           m.Spec.CNImage,
-						Name:            "oaicn",
+						Name:            "cn",
 						Command:         []string{"/sbin/init"},
 						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
 						VolumeMounts: []corev1.VolumeMount{{
@@ -637,7 +637,7 @@ func (r *ReconcileMosaic5g) deploymentForCN(m *mosaic5gv1alpha1.Mosaic5g) *appsv
 func (r *ReconcileMosaic5g) genCNService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
 	var service *v1.Service
 	selectMap := make(map[string]string)
-	selectMap["app"] = "oaicn"
+	selectMap["app"] = "cn"
 	service = &v1.Service{}
 	service.Spec = v1.ServiceSpec{
 		Ports: []v1.ServicePort{
@@ -651,7 +651,7 @@ func (r *ReconcileMosaic5g) genCNService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Servi
 		Selector:  selectMap,
 		ClusterIP: "None",
 	}
-	service.Name = "oaicn"
+	service.Name = "cn"
 	service.Namespace = m.Namespace
 	service.Labels = selectMap
 	// Set Mosaic5g instance as the owner and controller
