@@ -129,11 +129,11 @@ main(){
       delete_cr)
          delete_cr
       ;;
-      patch_12)
-         patch_12
+      patch_ranslicing)
+         patch_ranslicing
       ;;
-      patch_11)
-         patch_11
+      patch_ransnap
+         patch_ransnap()
       ;;
       *)
          echo "Commands: init apply_cr delete_cr patch_11 patch_12"
