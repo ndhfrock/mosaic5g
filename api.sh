@@ -91,7 +91,7 @@ patch_ranslicing(){
       -d '[{   "op"        :  "replace",
                "path"      :  "/spec/ranImage",
                "value"     :  "ndhfrock/oairanslicing:1.0"}
-	         ,{ "op"        :  "replace",
+            ,{ "op"        :  "replace",
                "path"      :  "/spec/configurationPathofRAN",
                "value"     :  "/LTE_Mac_scheduler_with_network_slicing/targets/PROJECTS/GENERIC-LTE-EPC/CONF/"}]'
 }
@@ -105,7 +105,7 @@ patch_ransnap(){
       -d '[{   "op"        :  "replace",
                "path"      :  "/spec/ranImage",
                "value"     :  "ndhfrock/oairan:1.1"}
-	         ,{ "op"        :  "replace",
+            ,{ "op"        :  "replace",
                "path"      :  "/spec/configurationPathofRAN",
                "value"     :  "/var/snap/oai-ran/current/"}]'
 }
