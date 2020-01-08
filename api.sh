@@ -14,9 +14,9 @@ apply_cr(){
 	   "kind"		:	"Mosaic5g",
 	   "metadata"	:	{"name"				   :	"mosaic5g"},
 	   "spec"		:	{
-               "size"				         :	1,
-					"cnImage"			         :	"ndhfrock/oaicn:1.0",
-					"ranImage"			         :	"ndhfrock/oairan:1.1",
+               "size"                     :	1,
+               "cnImage"                  :	"ndhfrock/oaicn:1.0",
+               "ranImage"                 :	"ndhfrock/oairan:1.1",
 					"flexRANImage"			      :	"mosaic5gecosys/flexran:0.1",
 					"mcc"				            :	"208",
 					"mnc"				            :	"93",
