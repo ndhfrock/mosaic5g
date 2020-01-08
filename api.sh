@@ -82,32 +82,32 @@ apply_cr_slicing(){
                "flexRANDomainName"        :	"flexran"}}'
 }
 
-patch_12(){
+patch_ranslicing(){
    curl \
       -H "content-Type: application/json-patch+json" \
       -H "Authorization: Bearer ${TOKEN}"\
       --insecure \
       -X PATCH ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g \
-      -d '[{"op"		:	"replace",
-	    "path"		:	"/spec/cnImage",
-	    "value"		:	"mosaic5gecosys/oaicn:1.2"}
-	  ,{"op"		:	"replace",
-	    "path"		:	"/spec/ranImage",
-	    "value"		:	"mosaic5gecosys/oairan:1.2"}]'
+      -d '[{   "op"        :  "replace",
+               "path"      :  "/spec/ranImage",
+               "value"     :  "ndhfrock/oairanslicing:1.0"}
+	         ,{ "op"        :  "replace",
+               "path"      :  "/spec/configurationPathofRAN",
+               "value"     :  "/LTE_Mac_scheduler_with_network_slicing/targets/PROJECTS/GENERIC-LTE-EPC/CONF/"}]'
 }
 
-patch_11(){
+patch_ransnap(){
    curl \
       -H "content-Type: application/json-patch+json" \
       -H "Authorization: Bearer ${TOKEN}"\
       --insecure \
       -X PATCH ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g \
-      -d '[{"op"		:	"replace",
-	    "path"		:	"/spec/cnImage",
-	    "value"		:	"mosaic5gecosys/oaicn:1.1"}
-	  ,{"op"		:	"replace",
-	    "path"		:	"/spec/ranImage",
-	    "value"		:	"mosaic5gecosys/oairan:1.1"}]'
+      -d '[{   "op"        :  "replace",
+               "path"      :  "/spec/ranImage",
+               "value"     :  "ndhfrock/oairan:1.1"}
+	         ,{ "op"        :  "replace",
+               "path"      :  "/spec/configurationPathofRAN",
+               "value"     :  "/var/snap/oai-ran/current/"}]'
 }
 
 init(){
@@ -143,10 +143,10 @@ main(){
          echo "Usage:"
          echo "      api.sh init - Apply defaultRole to kubernetes cluster"
          echo "      api.sh apply_cr - Add custom resource deployment (uses snap oai-ran)"
-	 echo "      api.sh apply_cr_slicing - Add custom resource deployment (uses samuel's oai-ran)"
+         echo "      api.sh apply_cr_slicing - Add custom resource deployment (uses samuel's oai-ran)"
          echo "      api.sh delete_cr - Delete all Custom Resource Deployment"
-         echo "      api.sh patch_11 - Change to OAICN and OAIRAN Docker image tag 1.1"
-         echo "      api.sh patch_12 - Change to OAICN and OAI RAN Docker image tag 1.2"
+         echo "      api.sh patch_ransnap - Change to OAIRAN from snap"
+         echo "      api.sh patch_ranslicing - Change to OAIRAN that Samuel's created"
       ;;
    esac
    
