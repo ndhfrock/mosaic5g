@@ -11,9 +11,9 @@ apply_cr(){
       --insecure \
       -X POST ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs \
       -d '{ "apiVersion"      :     "mosaic5g.com/v1alpha1",
-            "kind"            :	   "Mosaic5g",
-            "metadata"        :	{  "name"      :     "mosaic5g"},
-            "spec"            :	{
+            "kind"            :     "Mosaic5g",
+            "metadata"        :  {  "name"      :     "mosaic5g"},
+            "spec"            :  {
                "size"                     :  1,
                "cnImage"                  :  "ndhfrock/oaicn:1.0",
                "ranImage"                 :  "ndhfrock/oairan:1.1",
