@@ -243,10 +243,10 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	//if elasticsearch config is true, deploy elasticsearch
+	// Define a new Elasticsearch statefulset
+	es := &appsv1.StatefulSet{}
+	esDeployment := r.deploymentForElasticsearch(instance)
 	if instance.Spec.Elasticsearch == true {
-		// Define a new Elasticsearch statefulset
-		es := &appsv1.StatefulSet{}
-		esDeployment := r.deploymentForElasticsearch(instance)
 		// Check if Elasticsearch StatefulSet already exists, if not create a new one
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: esDeployment.GetName(), Namespace: instance.Namespace}, es)
 		if err != nil && errors.IsNotFound(err) {
@@ -272,10 +272,10 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	//if kibana config is true, deploy kibana
+	// Define a new kibana deployment
+	kib := &appsv1.Deployment{}
+	kibDeployment := r.deploymentForKibana(instance)
 	if instance.Spec.Kibana == true {
-		// Define a new kibana deployment
-		kib := &appsv1.Deployment{}
-		kibDeployment := r.deploymentForKibana(instance)
 		// Check if Kibana Deployment already exists, if not create a new one
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: kibDeployment.GetName(), Namespace: instance.Namespace}, kib)
 		if err != nil && errors.IsNotFound(err) {
@@ -301,10 +301,10 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	//if drone config is true, deploy drone store app
+	// Define a new drone deployment
+	drone := &appsv1.Deployment{}
+	droneDeployment := r.deploymentForDrone(instance)
 	if instance.Spec.DroneStore == true {
-		// Define a new drone deployment
-		drone := &appsv1.Deployment{}
-		droneDeployment := r.deploymentForDrone(instance)
 		// Check if Drone Deployment already exists, if not create a new one
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: droneDeployment.GetName(), Namespace: instance.Namespace}, drone)
 		if err != nil && errors.IsNotFound(err) {
@@ -330,24 +330,24 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	//if rrmkpi config is true, deploy rrm-kpi store app
+	// Define a new rrmkpi deployment
+	rrmkpi := &appsv1.Deployment{}
+	rrmkpiDeployment := r.deploymentForRRMKPI(instance)
 	if instance.Spec.RRMKPIStore == true {
-		// Define a new rrmkpi deployment
-		drone := &appsv1.Deployment{}
-		droneDeployment := r.deploymentForRRMKPI(instance)
 		// Check if RRM-KPI Deployment already exists, if not create a new one
-		err = r.client.Get(context.TODO(), types.NamespacedName{Name: droneDeployment.GetName(), Namespace: instance.Namespace}, drone)
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: rrmkpiDeployment.GetName(), Namespace: instance.Namespace}, rrmkpi)
 		if err != nil && errors.IsNotFound(err) {
-			reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", droneDeployment.Namespace, "Deployment.Name", droneDeployment.Name)
-			err = r.client.Create(context.TODO(), droneDeployment)
+			reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", rrmkpiDeployment.Namespace, "Deployment.Name", rrmkpiDeployment.Name)
+			err = r.client.Create(context.TODO(), rrmkpiDeployment)
 			if err != nil {
-				reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", droneDeployment.Namespace, "Deployment.Name", droneDeployment.Name)
+				reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", rrmkpiDeployment.Namespace, "Deployment.Name", rrmkpiDeployment.Name)
 				return reconcile.Result{}, err
 			}
-			// Define a new drone service
-			droneService := r.genDroneService(instance)
-			err = r.client.Create(context.TODO(), droneService)
+			// Define a new rrmkpi service
+			rrmkpiService := r.genRRMKPIService(instance)
+			err = r.client.Create(context.TODO(), rrmkpiService)
 			if err != nil {
-				reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", droneService.Namespace, "Service.Name", droneService.Name)
+				reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", rrmkpiService.Namespace, "Service.Name", rrmkpiService.Name)
 				return reconcile.Result{}, err
 			}
 			// Deployment created successfully - return and requeue
@@ -431,8 +431,25 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			reqLogger.Info("Update ConfigMap and deleting CN and RAN")
 			err = r.client.Update(context.TODO(), new)
 			//Should only kill the POD
+			//Delete CN and ran pod first
 			err = r.client.Delete(context.TODO(), cnDeployment)
 			err = r.client.Delete(context.TODO(), ranDeployment)
+			// Delete other pods that is set to false in the new config
+			if instance.Spec.RRMKPIStore == false {
+				err = r.client.Delete(context.TODO(), rrmkpiDeployment)
+			}
+			if instance.Spec.DroneStore == false {
+				err = r.client.Delete(context.TODO(), droneDeployment)
+			}
+			if instance.Spec.Kibana == false {
+				err = r.client.Delete(context.TODO(), kibDeployment)
+			}
+			if instance.Spec.Elasticsearch == false {
+				err = r.client.Delete(context.TODO(), esDeployment)
+			}
+			if instance.Spec.FlexRAN == false {
+				err = r.client.Delete(context.TODO(), flexranDeployment)
+			}
 			// Spec updated - return and requeue
 			d, _ := time.ParseDuration("10s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, nil

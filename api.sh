@@ -110,6 +110,29 @@ patch_ransnap(){
                "value"     :  "/var/snap/oai-ran/current/"}]'
 }
 
+patch_component(){
+   curl \
+      -H "content-Type: application/json-patch+json" \
+      -H "Authorization: Bearer ${TOKEN}"\
+      --insecure \
+      -X PATCH ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g \
+      -d '[{   "op"        :  "replace",
+               "path"      :  "/spec/flexRAN",
+               "value"     :  false}
+         ,{    "op"        :  "replace",
+               "path"      :  "/spec/elasticsearch",
+               "value"     :  false}
+         ,{    "op"        :  "replace",
+               "path"      :  "/spec/kibana",
+               "value"     :  false}
+         ,{    "op"        :  "replace",
+               "path"      :  "/spec/droneStore",
+               "value"     :  false}
+         ,{    "op"        :  "replace",
+               "path"      :  "/spec/rrmkpiStore",
+               "value"     :  false}]'
+}
+
 init(){
    kubectl apply -f defaultRole.yaml
 }
@@ -147,6 +170,7 @@ main(){
          echo "      api.sh delete_cr - Delete all Custom Resource Deployment"
          echo "      api.sh patch_ransnap - Change to OAIRAN from snap"
          echo "      api.sh patch_ranslicing - Change to OAIRAN that Samuel's created"
+         echo "      api.sh patch_component - Change to deploy or undeploy supporting component"
       ;;
    esac
    
