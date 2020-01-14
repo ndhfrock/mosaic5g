@@ -95,7 +95,7 @@ main() {
             echo "      m5goperator.sh watch_deployment - watch all running deployment, refreshed every 1 second"
             echo "      m5goperator.sh watch_pods - watch all running pods, refreshed every 1 second"
             echo "      m5goperator.sh push_image - push your operator image to dockerhub"
-	    echo "      m5goperator.sh inside_pods [cn|ran|flexran] - access inside the pods"
+            echo "      m5goperator.sh inside_pods [cn|ran|flexran] - access inside the pods"
             echo ""
             echo "Default operator image is ndhfrock/m5goperator"
         ;;

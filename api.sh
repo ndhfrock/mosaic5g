@@ -39,6 +39,41 @@ apply_cr(){
                "flexRANDomainName"        :  "flexran"}}'
 }
 
+apply_cr_ltebox(){
+   curl \
+      -H "content-Type: application/json" \
+      -H "Authorization: Bearer ${TOKEN}"\
+      --insecure \
+      -X POST ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs \
+      -d '{ "apiVersion"      :     "mosaic5g.com/v1alpha1",
+            "kind"            :     "Mosaic5g",
+            "metadata"        :  {  "name"      :     "mosaic5g"},
+            "spec"            :  {
+               "size"                     :  1,
+               "cnImage"                  :  "ndhfrock/ltebox:1.0",
+               "ranImage"                 :  "ndhfrock/oairan:1.1",
+               "flexRANImage"             :  "mosaic5gecosys/flexran:0.1",
+               "mcc"                      :  "208",
+               "mnc"                      :  "93",
+               "eutraBand"                :  "7",
+               "downlinkFrequency"        :  "2685000000L",
+               "uplinkFrequencyOffset"    :  "-120000000",
+               "configurationPathofCN"    :  "/opt/ltebox/etc/",
+               "configurationPathofRAN"   :  "/var/snap/oai-ran/current/",
+               "snapBinaryPath"           :  "/snap/bin/",
+               "hssDomainName"            :  "cn",
+               "mmeDomainName"            :  "cn",
+               "spgwDomainName"           :  "cn",
+               "mysqlDomainName"          :  "mysql",
+               "dns"                      :  "8.8.8.8",
+               "flexRAN"                  :  true,
+               "elasticsearch"            :  false, 
+               "kibana"                   :  false, 
+               "droneStore"               :  false, 
+               "rrmkpiStore"              :  false, 
+               "flexRANDomainName"        :  "flexran"}}'
+}
+
 delete_cr(){
    curl \
       -H "content-Type: application/json" \
@@ -110,6 +145,34 @@ patch_ransnap(){
                "value"     :  "/var/snap/oai-ran/current/"}]'
 }
 
+patch_cnsnap(){
+   curl \
+      -H "content-Type: application/json-patch+json" \
+      -H "Authorization: Bearer ${TOKEN}"\
+      --insecure \
+      -X PATCH ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g \
+      -d '[{   "op"        :  "replace",
+               "path"      :  "/spec/cnImage",
+               "value"     :  "ndhfrock/oaicn:1.0"}
+         ,{    "op"        :  "replace",
+               "path"      :  "/spec/configurationPathofCN",
+               "value"     :  "/var/snap/oai-cn/current/"}]'
+}
+
+patch_cnltebox(){
+   curl \
+      -H "content-Type: application/json-patch+json" \
+      -H "Authorization: Bearer ${TOKEN}"\
+      --insecure \
+      -X PATCH ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g \
+      -d '[{   "op"        :  "replace",
+               "path"      :  "/spec/cnImage",
+               "value"     :  "ndhfrock/ltebox:1.0"}
+         ,{    "op"        :  "replace",
+               "path"      :  "/spec/configurationPathofCN",
+               "value"     :  "/opt/ltebox/etc/"}]'
+}
+
 patch_component(){
    curl \
       -H "content-Type: application/json-patch+json" \
@@ -146,6 +209,9 @@ main(){
       apply_cr)
          apply_cr
       ;;
+      apply_cr_ltebox)
+         apply_cr_ltebox
+      ;;
       apply_cr_slicing)
          apply_cr_slicing
       ;;
@@ -155,8 +221,17 @@ main(){
       patch_ranslicing)
          patch_ranslicing
       ;;
-      patch_ransnap
-         patch_ransnap()
+      patch_ransnap)
+         patch_ransnap
+      ;;
+      patch_cnsnap)
+         patch_cnsnap
+      ;;
+      patch_cnltebox)
+         patch_cnltebox
+      ;;
+      patch_component)
+         patch_component
       ;;
       *)
          echo "Commands: init apply_cr delete_cr patch_11 patch_12"
@@ -164,12 +239,16 @@ main(){
          echo "[Important] Always use api.sh init first to use this"
          echo ""
          echo "Usage:"
+         echo "      ================  APPLY TO START DEPLOYING PODS  ================"
          echo "      api.sh init - Apply defaultRole to kubernetes cluster"
          echo "      api.sh apply_cr - Add custom resource deployment (uses snap oai-ran)"
          echo "      api.sh apply_cr_slicing - Add custom resource deployment (uses samuel's oai-ran)"
          echo "      api.sh delete_cr - Delete all Custom Resource Deployment"
-         echo "      api.sh patch_ransnap - Change to OAIRAN from snap"
+         echo "      ============  PATCH TO UPDATE COMPONENT AFTER APPLYING  ============"
+         echo "      api.sh patch_ransnap - Change to OAIRAN from snap store"
          echo "      api.sh patch_ranslicing - Change to OAIRAN that Samuel's created"
+         echo "      api.sh patch_cnsnap - Change to OAICN from snap store"
+         echo "      api.sh patch_cnltebox - Change to LTEBOX Core Network"
          echo "      api.sh patch_component - Change to deploy or undeploy supporting component"
       ;;
    esac
