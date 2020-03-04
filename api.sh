@@ -74,14 +74,6 @@ apply_cr_ltebox(){
                "flexRANDomainName"        :  "flexran"}}'
 }
 
-delete_cr(){
-   curl \
-      -H "content-Type: application/json" \
-      -H "Authorization: Bearer ${TOKEN}"\
-      --insecure \
-      -X DELETE ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g
-}
-
 apply_cr_slicing(){
    curl \
       -H "content-Type: application/json" \
@@ -115,6 +107,49 @@ apply_cr_slicing(){
                "droneStore"               :	false, 
                "rrmkpiStore"              :	false, 
                "flexRANDomainName"        :	"flexran"}}'
+}
+
+apply_cr_nbiot(){
+   curl \
+      -H "content-Type: application/json" \
+      -H "Authorization: Bearer ${TOKEN}"\
+      --insecure \
+      -X POST ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs \
+      -d '{ "apiVersion"      :     "mosaic5g.com/v1alpha1",
+            "kind"            :     "Mosaic5g",
+            "metadata"        :  {  "name"      :     "mosaic5g"},
+            "spec"            :  {
+               "size"                     :  1,
+               "cnImage"                  :	"ndhfrock/ltebox:1.0",
+               "ranImage"                 :	"ndhfrock/oainbiot:1.0",
+               "flexRANImage"             :	"mosaic5gecosys/flexran:0.1",
+               "mcc"                      :	"208",
+               "mnc"                      :	"93",
+               "eutraBand"                :	"28",
+               "downlinkFrequency"        :	"780000000L",
+               "uplinkFrequencyOffset"    :	"-55000000",
+               "configurationPathofCN"    :	"/var/snap/oai-cn/current/",
+               "configurationPathofRAN"   :	"/",
+               "snapBinaryPath"           :	"/snap/bin/",
+               "hssDomainName"            :	"cn",
+               "mmeDomainName"            :	"cn",
+               "spgwDomainName"           :	"cn",
+               "mysqlDomainName"          :	"mysql",
+               "dns"                      :	"8.8.8.8",
+               "flexRAN"                  :	false,
+               "elasticsearch"            :	false, 
+               "kibana"                   :	false, 
+               "droneStore"               :	false, 
+               "rrmkpiStore"              :	false, 
+               "flexRANDomainName"        :	"flexran"}}'
+}
+
+delete_cr(){
+   curl \
+      -H "content-Type: application/json" \
+      -H "Authorization: Bearer ${TOKEN}"\
+      --insecure \
+      -X DELETE ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g
 }
 
 patch_ranslicing(){
