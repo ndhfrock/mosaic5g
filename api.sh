@@ -250,6 +250,9 @@ main(){
       apply_cr_slicing)
          apply_cr_slicing
       ;;
+      apply_cr_nbiot)
+         apply_cr_nbiot
+      ;;
       delete_cr)
          delete_cr
       ;;
@@ -276,8 +279,10 @@ main(){
          echo "Usage:"
          echo "      ================  APPLY TO START DEPLOYING PODS  ================"
          echo "      api.sh init - Apply defaultRole to kubernetes cluster"
-         echo "      api.sh apply_cr - Add custom resource deployment (uses snap oai-ran)"
-         echo "      api.sh apply_cr_slicing - Add custom resource deployment (uses samuel's oai-ran)"
+         echo "      api.sh apply_cr - Add custom resource deployment (uses snap oai-ran and snap oaicn)"
+         echo "      api.sh apply_cr_slicing - Add custom resource deployment (uses samuel's oai-ran and snap oaicn)"
+         echo "      api.sh apply_cr_ltebox - Add custom resource deployment (uses snap oai-ran and ltebox)"
+         echo "      api.sh apply_cr_nbiot - Add custom resource deployment (uses nb-iot ran and ltebox)"
          echo "      api.sh delete_cr - Delete all Custom Resource Deployment"
          echo "      ============  PATCH TO UPDATE COMPONENT AFTER APPLYING  ============"
          echo "      api.sh patch_ransnap - Change to OAIRAN from snap store"
